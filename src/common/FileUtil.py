@@ -107,15 +107,15 @@ def extract_zip(zip_file_path: str,
         if not os.path.exists(extracted_dir):
             os.mkdir(extracted_dir)
 
-    if callback_on_extracted_folder is not None:
-        callback_on_extracted_folder(extracted_dir)
-
     logger.debug(r'Start extracting file {} into {}'.format(zip_file_path, extracted_dir))
 
     with ResourceLock(file_path=zip_file_path):
         with ResourceLock(file_path=extracted_dir):
             with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
                 zip_ref.extractall(extracted_dir)
+
+    if callback_on_extracted_folder is not None:
+        callback_on_extracted_folder(extracted_dir)
 
     os.remove(zip_file_path)
     logger.debug(r'Extracted successfully file {} to {}'.format(zip_file_path, extracted_dir))

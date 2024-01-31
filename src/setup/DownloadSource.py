@@ -18,7 +18,7 @@ def download_source():
 
     if response.status_code == 200:
         destination_directory = CURRENT_DIR
-        file_name = os.path.join(destination_directory, "automation-tool.zip")
+        file_name = os.path.join(destination_directory, "automation-tool-main.zip")
         with open(file_name, 'wb') as downloaded_zip_file:
             downloaded_zip_file.write(response.content)
         print("Download source successfully")

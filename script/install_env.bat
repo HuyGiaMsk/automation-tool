@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 
 :set_main_paths
 set DEFAULT_INSTALL_PATH=%USERPROFILE%\AppData\Local\Programs\Python
-set SOURCE_PATH=%cd%
+set SOURCE_PATH=%cd%\automation_tool
 set VENV_PATH=%SOURCE_PATH%\venv
 
 :install_python
