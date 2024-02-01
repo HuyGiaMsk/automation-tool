@@ -25,6 +25,7 @@ class Blx(AutomatedTask):
         return mandatory_keys
 
     def automate(self) -> None:
+
         logger: Logger = get_current_logger()
         logger.info(
             "---------------------------------------------------------------------------------------------------------")
@@ -43,29 +44,8 @@ class Blx(AutomatedTask):
         if len(bills) == 0:
             logger.error('Input booking id list is empty ! Please check again')
 
-        self.current_element_count = 0
-        self.total_element_size = len(bills)
-
         last_bill: str = ''
-
-        for bill in bills:
-
-            if self.terminated is True:
-                return
-
-            with self.pause_condition:
-
-                while self.paused:
-                    self.pause_condition.wait()
-
-                if self.terminated is True:
-                    return
-
-            logger.info("Processing booking : " + bill)
-            self.__navigate_and_download(bill)
-            last_bill = bill
-
-            self.current_element_count = self.current_element_count + 1
+        self.perform_mainloop_on_collection(bills, self.operation_on_each_element)
 
         self._driver.close()
         logger.info(
@@ -87,6 +67,26 @@ class Blx(AutomatedTask):
         self._type_when_element_present(by=By.ID, value='username', content=username)
         self._type_when_element_present(by=By.ID, value='password', content=password)
         self._click_and_wait_navigate_to_other_page(by=By.CSS_SELECTOR, value='input[type=button]')
+
+
+    def operation_on_each_element(self, bill):
+        logger: Logger = get_current_logger()
+
+        if self.terminated is True:
+            return
+
+        with self.pause_condition:
+
+            while self.paused:
+                self.pause_condition.wait()
+
+            if self.terminated is True:
+                return
+
+        logger.info("Processing booking : " + bill)
+        self.__navigate_and_download(bill)
+        last_bill = bill
+
     def __check_up_all_downloads(self, booking_ids: set[str]) -> None:
         logger: Logger = get_current_logger()
         time.sleep(10 * self._timingFactor)

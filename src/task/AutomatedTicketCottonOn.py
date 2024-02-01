@@ -1,33 +1,38 @@
 import os
-import time
 import threading
-
+import time
 from datetime import datetime, timedelta
 from logging import Logger
 from typing import Callable
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as ec
 
 from src.task.AutomatedTask import AutomatedTask
-from src.common.FileUtil import get_excel_data_in_column_start_at_row, extract_zip, \
-    check_parent_folder_contain_all_required_sub_folders, remove_all_in_folder
-from src.common.StringUtil import join_set_of_elements
-from src.common.ThreadLocalLogger import get_current_logger
 from src.common.Constants import ZIP_EXTENSION
+from src.common.FileUtil import get_excel_data_in_column_start_at_row, extract_zip, \
+    remove_all_in_folder
+from src.common.ResourceLock import ResourceLock
+from src.common.ThreadLocalLogger import get_current_logger
 
+from enum import Enum
+
+
+# Define an enumeration class
+class BookingToInfoIndex(Enum):
+    SO_INDEX_IN_TUPLE = 0
+    BECODE_INDEX_IN_TUPLE = 1
 
 class AutomatedTicketCottonOn(AutomatedTask):
+    booking_to_info = {}
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)
-        self.last_booking = None
 
     def mandatory_settings(self) -> list[str]:
-        mandatory_keys: list[str] = ['username', 'password', 'excel.path', 'excel.sheet',
-                                    'excel.column.booking', 'download.folder', 'excel.column.so', 'excel.column.becode']
+        mandatory_keys: list[str] = ['username', 'password', 'download.folder', 'excel.path', 'excel.sheet',
+                                    'excel.column.booking',
+                                    'excel.column.so', 'excel.column.becode']
         return mandatory_keys
 
     def automate(self) -> None:
@@ -50,30 +55,49 @@ class AutomatedTicketCottonOn(AutomatedTask):
 
         booking_ids: list[str] = get_excel_data_in_column_start_at_row(self._settings['excel.path'],
                                                                        self._settings['excel.sheet'],
-                                                                       self._settings['excel.column.booking'])
+                                                                       self._settings[
+                                                                           'excel.column.booking'])
+
+        becodes: list[str] = get_excel_data_in_column_start_at_row(self._settings['excel.path'],
+                                                                   self._settings['excel.sheet'],
+                                                                   self._settings[
+                                                                       'excel.column.becode'])
+
+        so_numbers: list[str] = get_excel_data_in_column_start_at_row(self._settings['excel.path'],
+                                                                      self._settings['excel.sheet'],
+                                                                      self._settings['excel.column.so'])
         if len(booking_ids) == 0:
             logger.error('Input booking id list is empty ! Please check again')
 
-        self.last_booking: str = ''
-        self.current_element_count = 0
-        self.total_element_size = len(booking_ids)
-        self.perform_mainloop_on_collection(booking_ids, self.operation_on_each_element)
-        self._driver.close()
+        if len(booking_ids) != len(becodes) or len(booking_ids) != len(becodes):
+            raise Exception("Please check your input data length of becode, sonumber and booking are not equal")
 
+        # info means becode and so number
+        index: int = 0
+        for booking in booking_ids:
+            self.booking_to_info[booking] = (so_numbers[index], becodes[index])
+            index += 1
+
+        last_booking: str = ''
+        for booking in booking_ids:
+            logger.info("Processing booking : " + booking)
+            self.__navigate_and_download(booking)
+
+            last_booking = booking
+
+        self._driver.close()
         logger.info(
             "---------------------------------------------------------------------------------------------------------")
         logger.info("End processing")
         logger.info("Summary info about list of successful and unsuccessful attempts to download each "
                     "booking's documents during the program")
 
-        # Display summary info to the user
-        self.__check_up_all_downloads(set(booking_ids), self.last_booking)
 
-    def operation_on_each_element(self, booking):
-        logger: Logger = get_current_logger()
-        logger.info("Processing booking : " + booking)
-        self.__navigate_and_download(booking)
-        self.last_booking = booking
+        # Display summary info to the user
+        # self.__check_up_all_downloads(set(booking_ids))
+
+        # Pause and wait for the user to press Enter
+        logger.info("It ends at {}. Press any key to end program...".format(datetime.now()))
 
     def __login(self) -> None:
         username: str = self._settings['username']
@@ -81,26 +105,8 @@ class AutomatedTicketCottonOn(AutomatedTask):
 
         self._type_when_element_present(by=By.ID, value='user-mail', content=username)
         self._type_when_element_present(by=By.ID, value='pwd', content=password)
+        time.sleep(2)
         self._click_and_wait_navigate_to_other_page(by=By.CSS_SELECTOR, value='button[type=submit]')
-
-    def __check_up_all_downloads(self, booking_ids: set[str], last_booking: str) -> None:
-        logger: Logger = get_current_logger()
-        last_booking_downloaded_folder: str = os.path.join(self._download_folder, last_booking)
-        self._wait_download_file_complete(last_booking_downloaded_folder)
-
-        is_all_contained, successful_bookings, unsuccessful_bookings = check_parent_folder_contain_all_required_sub_folders(
-            parent_folder=self._download_folder, required_sub_folders=booking_ids)
-
-        logger.info('{} successful booking folders containing documents has been download'
-                    .format(len(successful_bookings)))
-        successful_bookings = join_set_of_elements(successful_bookings, " ")
-        logger.info(successful_bookings)
-
-        if not is_all_contained:
-            logger.error('{} fail attempts for downloading documents in all these bookings'
-                         .format(len(unsuccessful_bookings)))
-            successful_bookings = join_set_of_elements(unsuccessful_bookings, " ")
-            logger.info(successful_bookings)
 
     def __navigate_and_download(self, booking: str) -> None:
         logger: Logger = get_current_logger()
@@ -136,23 +142,12 @@ class AutomatedTicketCottonOn(AutomatedTask):
 
         # click detail booking
         self._click_when_element_present(by=By.CSS_SELECTOR, value='td[data-cy=table-cell-actions] '
-                                                                   'div[data-cy=action-details]'
-                                                                   ':nth-child(2)')
+                                                                   'div[data-cy=action-details] svg' )
         # click tab document
-        self._click_when_element_present(by=By.CSS_SELECTOR, value='button[data-cy=documents]')
-
-        # click view file
-        self._click_when_element_present(by=By.CSS_SELECTOR, value='div[data-cy=shipment-documents-box] '
-                                                                   '.MuiGrid-container '
-                                                                   '.MuiGrid-item:nth-child(6) button')
+        self._click_when_element_present(by=By.ID, value='item-documents')
 
         # wait until the progress bar on view file disappear
         time.sleep(1 * self._timingFactor)
-        WebDriverWait(self._driver, 120 * self._timingFactor).until(ec.invisibility_of_element(
-            (By.CSS_SELECTOR, 'div[data-cy=shipment-documents-box] .MuiGrid-container '
-                              '.MuiGrid-item:nth-child(6) button .progressbar')))
-
-        self._wait_to_close_all_new_tabs_except_the_current()
 
         # click downLoad all files
         self._click_when_element_present(by=By.CSS_SELECTOR, value='div[data-cy=shipment-documents-box] '
@@ -162,19 +157,57 @@ class AutomatedTicketCottonOn(AutomatedTask):
         self._wait_download_file_complete(full_file_path)
         extract_zip_task = threading.Thread(target=extract_zip,
                                             args=(full_file_path, self._download_folder,
-                                                  self.delete_redundant_opening_pdf_files, None),
+                                                  self.delete_redundant_opening_pdf_files,
+                                                  self.rename_all_files_in_folder_extracted),
                                             daemon=False)
-        extract_zip_task.start()
 
+        extract_zip_task.start()
         # click to back to the overview Booking page
-        self._click_and_wait_navigate_to_other_page(by=By.CSS_SELECTOR,
-                                                    value='.MuiBreadcrumbs-ol .MuiBreadcrumbs-li:nth-child(1)')
+        self._click_when_element_present(by=By.CSS_SELECTOR, value='button[data-cy=iconButtonClose] '
+                                                                   'span.MuiIconButton-label svg')
+        self._click_when_element_present(by=By.CSS_SELECTOR, value='div[role=button] svg')
         logger.info("Navigating back to overview Booking page")
 
     @staticmethod
     def delete_redundant_opening_pdf_files(download_folder: str) -> None:
-
+        # aim to perform in root folder which is actually the defined download folder
         remove_all_in_folder(folder_path=download_folder,
                              only_files=True,
                              file_extension="pdf",
                              elapsed_time=timedelta(minutes=2))
+
+    @staticmethod
+    def rename_all_files_in_folder_extracted(extracted_dir: str) -> None:
+        file_name_inv: str = "Invoice"
+        file_name_pkl: str = "Packing"
+
+        booking_id: str = os.path.split(extracted_dir)[1]
+        so_number = AutomatedTicketCottonOn.booking_to_info[booking_id][BookingToInfoIndex.SO_INDEX_IN_TUPLE.value]
+
+        with ResourceLock(file_path=extracted_dir):
+
+            for file_name in os.listdir(extracted_dir):
+                file_path = os.path.join(extracted_dir, file_name)
+
+                if os.path.isdir(file_path):
+                    continue
+
+                if file_name_inv in file_name:
+                    source = file_path
+                    des = os.path.join(extracted_dir, "{}_INV.pdf".format(so_number))
+                    os.rename(source, des)
+                    continue
+
+                if file_name_pkl in file_name:
+                    source = file_path
+                    des = os.path.join(extracted_dir, "{}_PKL.pdf".format(so_number))
+                    os.rename(source, des)
+                    continue
+
+                os.remove(file_path)
+
+        # rename the folder
+        root_dir = os.path.dirname(extracted_dir)
+        source = extracted_dir
+        des = os.path.join(root_dir, so_number)
+        os.rename(source, des)
