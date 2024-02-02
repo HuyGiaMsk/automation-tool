@@ -2,26 +2,26 @@ import os
 import threading
 import time
 from datetime import datetime, timedelta
+from enum import Enum
 from logging import Logger
 from typing import Callable
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
-from src.task.AutomatedTask import AutomatedTask
 from src.common.Constants import ZIP_EXTENSION
 from src.common.FileUtil import get_excel_data_in_column_start_at_row, extract_zip, \
     remove_all_in_folder
 from src.common.ResourceLock import ResourceLock
 from src.common.ThreadLocalLogger import get_current_logger
-
-from enum import Enum
+from src.task.AutomatedTask import AutomatedTask
 
 
 # Define an enumeration class
 class BookingToInfoIndex(Enum):
     SO_INDEX_IN_TUPLE = 0
     BECODE_INDEX_IN_TUPLE = 1
+
 
 class AutomatedTicketCottonOn(AutomatedTask):
     booking_to_info = {}
@@ -30,9 +30,9 @@ class AutomatedTicketCottonOn(AutomatedTask):
         super().__init__(settings, callback_before_run_task)
 
     def mandatory_settings(self) -> list[str]:
-        mandatory_keys: list[str] = ['username', 'password', 'download.folder', 'excel.path', 'excel.sheet',
-                                    'excel.column.booking',
-                                    'excel.column.so', 'excel.column.becode']
+        mandatory_keys: list[str] = ['username', 'password', 'excel.path', 'excel.sheet',
+                                     'excel.column.booking', 'download.folder',
+                                     'excel.column.so', 'excel.column.becode']
         return mandatory_keys
 
     def automate(self) -> None:
@@ -49,6 +49,7 @@ class AutomatedTicketCottonOn(AutomatedTask):
 
         logger.info("Navigate to overview Booking page the first time")
         # click navigating operations on header
+        time.sleep(1)
         self._click_when_element_present(by=By.CSS_SELECTOR, value='div[data-cy=nav-Operations]')
         # click navigating overview bookings page - on the header
         self._click_and_wait_navigate_to_other_page(by=By.CSS_SELECTOR, value='li[data-cy=bookings]')
@@ -82,7 +83,6 @@ class AutomatedTicketCottonOn(AutomatedTask):
         for booking in booking_ids:
             logger.info("Processing booking : " + booking)
             self.__navigate_and_download(booking)
-
             last_booking = booking
 
         self._driver.close()
@@ -91,7 +91,6 @@ class AutomatedTicketCottonOn(AutomatedTask):
         logger.info("End processing")
         logger.info("Summary info about list of successful and unsuccessful attempts to download each "
                     "booking's documents during the program")
-
 
         # Display summary info to the user
         # self.__check_up_all_downloads(set(booking_ids))
@@ -142,7 +141,7 @@ class AutomatedTicketCottonOn(AutomatedTask):
 
         # click detail booking
         self._click_when_element_present(by=By.CSS_SELECTOR, value='td[data-cy=table-cell-actions] '
-                                                                   'div[data-cy=action-details] svg' )
+                                                                   'div[data-cy=action-details] svg ')
         # click tab document
         self._click_when_element_present(by=By.ID, value='item-documents')
 
@@ -183,7 +182,6 @@ class AutomatedTicketCottonOn(AutomatedTask):
 
         booking_id: str = os.path.split(extracted_dir)[1]
         so_number = AutomatedTicketCottonOn.booking_to_info[booking_id][BookingToInfoIndex.SO_INDEX_IN_TUPLE.value]
-
         with ResourceLock(file_path=extracted_dir):
 
             for file_name in os.listdir(extracted_dir):
