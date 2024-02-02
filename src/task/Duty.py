@@ -2,7 +2,6 @@ import datetime
 import os
 import shutil
 import time
-import requests
 from datetime import datetime
 from enum import Enum
 from logging import Logger
@@ -13,9 +12,9 @@ from openpyxl import load_workbook
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
-from src.task.AutomatedTask import AutomatedTask
 from src.common.FileUtil import get_excel_data_in_column_start_at_row
 from src.common.ThreadLocalLogger import get_current_logger
+from src.task.AutomatedTask import AutomatedTask
 
 
 class BookingToInfoIndex(Enum):
@@ -24,21 +23,16 @@ class BookingToInfoIndex(Enum):
 
 
 class Duty(AutomatedTask):
-    def getCurrentPercent(self):
-        pass
-
-    def get_current_percent(self) -> float:
-        pass
-
-    fcr_to_file_rename = {}
+    fcr_to_file_remane = {}
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)
         self._document_folder = self._download_folder
 
     def mandatory_settings(self) -> list[str]:
-        mandatory_keys: list[str] = ['username', 'password', 'download.folder', 'rename.folder', 'excel.path',
-                                     'excel.sheet', 'excel.column.fcr', 'excel.column.fcr_rename']
+        mandatory_keys: list[str] = ['username', 'password', 'excel.path', 'excel.sheet', 'download.folder',
+                                     'rename.folder',
+                                     'excel.column.fcr', 'excel.column.fcr_rename']
         return mandatory_keys
 
     def automate(self):
@@ -49,11 +43,12 @@ class Duty(AutomatedTask):
 
         uid: str = self._settings['username']
         psw: str = self._settings['password']
-        login_url = 'https://{}:{}@amerapps-legacy.apmoller.net/DutyDeduction/'.format((uid), (psw))
+        login_url = ('https://{}:{}@amerapps-legacy.apmoller.net/DutyDeduction/Grid.aspx?search=true'
+                     .format((uid), (psw)))
         logger.info('Try to login')
         self._driver.get(login_url)
         logger.info("Login successfully")
-        time.sleep(3)
+
         fcr_numbers: list[str] = get_excel_data_in_column_start_at_row(self._settings['excel.path'],
                                                                        self._settings['excel.sheet'],
                                                                        self._settings[
@@ -65,13 +60,36 @@ class Duty(AutomatedTask):
 
         batch_index: int = 0
         quantity_of_batches: int = len(download_filter_cookies)
+
+        self.current_element_count = 0
+        self.total_element_size = len(fcr_numbers)
         while batch_index < quantity_of_batches:
-            self._driver.add_cookie(
-                {'name': 'Download1FilterString', 'value': f'{download_filter_cookies[batch_index]}'})
-            self._driver.add_cookie(
-                {'name': 'SearchControl1Download1Filter', 'value': f'{search_filter_cookies[batch_index]}'})
-            self._driver.get(login_url)
-            logger.info('Refreshed cookies')
+
+            if self.terminated is True:
+                return
+
+            with self.pause_condition:
+
+                while self.paused:
+                    self.pause_condition.wait()
+
+                if self.terminated is True:
+                    return
+
+            try_count = 1
+            try:
+                if try_count > 20:
+                    raise Exception
+                self._driver.add_cookie(
+                    {'name': 'Download1FilterString', 'value': f'{download_filter_cookies[batch_index]}'})
+                self._driver.add_cookie(
+                    {'name': 'SearchControl1Download1Filter', 'value': f'{search_filter_cookies[batch_index]}'})
+                self._driver.get(login_url)
+                logger.info('Refreshed cookies')
+                time.sleep(1)
+
+            except:
+                logger.info('cannot add cookies')
 
             fcr_code_to_index_and_time: Dict[str, Tuple[int, datetime]] = {}
 
@@ -107,6 +125,7 @@ class Duty(AutomatedTask):
                 self._rename_file_after_download(fcr_code, fcr_index)
 
             batch_index += 1
+            self.current_element_count = self.current_element_count + 1
 
         logger.info("Complete download")
         self._input_excel()

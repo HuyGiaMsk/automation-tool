@@ -3,15 +3,15 @@ from logging import Logger
 from typing import Callable
 
 from selenium.webdriver import Keys
-from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
 
 from src.common.FileUtil import get_excel_data_in_column_start_at_row
 from src.common.ThreadLocalLogger import get_current_logger
 from src.task.AutomatedTask import AutomatedTask
 
 
-class Download_bill_maersk(AutomatedTask):
+class Download_Bill_Maersk(AutomatedTask):
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)
@@ -28,7 +28,7 @@ class Download_bill_maersk(AutomatedTask):
             "---------------------------------------------------------------------------------------------------------")
         logger.info("Start processing")
 
-        self._driver.get('https://accounts.maersk.com/ocean-maeu/auth/login')
+        self._driver.get('https://www.maersk.com/portaluser/login')
 
         logger.info('Try to login')
         self.__login()
@@ -40,7 +40,7 @@ class Download_bill_maersk(AutomatedTask):
         if len(bills) == 0:
             logger.error('Input booking id list is empty ! Please check again')
 
-        self.perform_mainloop_on_collection(bills, Download_bill_maersk.operation_on_each_element)
+        self.perform_mainloop_on_collection(bills, Download_Bill_Maersk.operation_on_each_element)
 
     def __login(self):
 
@@ -54,24 +54,30 @@ class Download_bill_maersk(AutomatedTask):
         self._click_when_element_present(by=By.CSS_SELECTOR, value='div.coi-banner__page-footer button:nth-child(3)')
         logger.info('Accepted all cookies')
 
-        try_login_count: int = 1
-        try:
-            if try_login_count > 10:
-                raise Exception
-            self._type_when_element_present(by=By.CSS_SELECTOR, value='mc-input#username input', content=user_name)
-            logger.info('inputted user name')
+        self._get_when_element_present(by=By.CSS_SELECTOR, value='#maersk-app main form mc-input#username')
 
-            self._type_when_element_present(by=By.CSS_SELECTOR, value='mc-input#username input', content=Keys.TAB)
+        username_element: WebElement = self._driver.execute_script(
+            'return document.querySelector(\'#maersk-app main form mc-input#username\').shadowRoot.querySelector(\'input\')')
+        username_element.send_keys(user_name)
 
-            time.sleep(1)
+        username_element.send_keys(Keys.TAB)
+        logger.info('inputted user name')
 
-            self._click_and_wait_navigate_to_other_page(by=By.ID, value='login-submit-button')
+        time.sleep(1)
 
-            time.sleep(1)
-            try_login_count += 1
+        mc_button = self._driver.execute_script('return document.querySelector(\'mc-button#login-submit-button\')')
+        shadow_root = self._driver.execute_script('return arguments[0].shadowRoot', mc_button)
+        button_inside_shadow_dom = self._driver.execute_script(
+            'return arguments[0].querySelector(\'button#button.items-center\')', shadow_root)
 
-        except:
-            logger.info('cannot get elements')
+        button_inside_shadow_dom.click()
+
+        time.sleep(1)
+
+        logger.info('clicked button - need your access')
+
+        self._wait_navigating_to_other_page_complete(previous_url='https://www.maersk.com/portaluser/login',
+                                                     expected_end_with='https://www.maersk.com/portaluser/select-customer')
 
         self._type_when_element_present(by=By.CSS_SELECTOR,
                                         value='fieldset div:nth-child(2) mc-c-typeahead[data-cy=country-input]',

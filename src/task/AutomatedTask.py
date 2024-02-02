@@ -1,24 +1,24 @@
+import logging
 import os
 import time
-import logging
 import uuid
-from datetime import datetime
-
-from logging import Logger
 from abc import abstractmethod, ABC
+from datetime import datetime
+from logging import Logger
 from typing import Callable
+
 from selenium import webdriver
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.expected_conditions import AnyDriver
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions
 
+from src.common.Percentage import Percentage
 from src.common.ResumableThread import ResumableThread
-from src.setup.DownloadDriver import place_suitable_chromedriver, get_full_browser_driver_path
 from src.common.StringUtil import validate_keys_of_dictionary
 from src.common.ThreadLocalLogger import get_current_logger, create_thread_local_logger
-from src.common.Percentage import Percentage
+from src.setup.DownloadDriver import place_suitable_chromedriver, get_full_browser_driver_path
 
 
 class AutomatedTask(Percentage, ResumableThread, ABC):
@@ -117,12 +117,13 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
             options.add_argument('--disable-gpu')
             options.add_argument("--window-size=%s" % "1920,1080")
             options.add_argument("--use-fake-ui-for-media-stream")
+            options.add_argument("--enable-javascript")
         else:
             options.add_argument("--start-maximized")
 
-        options.add_argument('--disable-extensions')
-        options.add_argument('--disable-infobars')
-        options.add_argument('--disable-notifications')
+        options.add_argument('--enable-extensions')
+        options.add_argument('--enable-infobars')
+        options.add_argument('--enable-notifications')
 
         download_path: str = self._download_folder
         prefs: dict = {
@@ -164,7 +165,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
     def _wait_navigating_to_other_page_complete(self, previous_url: str, expected_end_with: str = None) -> None:
         logger: Logger = get_current_logger()
         attempt_counting: int = 0
-        max_attempt: int = 30
+        max_attempt: int = 120
         while True:
             current_url: str = self._driver.current_url
 
@@ -240,6 +241,14 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
         self._wait_navigating_to_other_page_complete(previous_url=previous_url)
         return web_element
 
+    def _get_when_element_present(self, by: str, value: str, time_sleep: int = 1) -> WebElement:
+        web_element: WebElement = self.__get_element_satisfy_predicate(by,
+                                                                       value,
+                                                                       expected_conditions.presence_of_element_located(
+                                                                           (by, value)),
+                                                                       time_sleep)
+        return web_element
+
     def __get_element_satisfy_predicate(self,
                                         by: str,
                                         element_selector: str,
@@ -247,6 +256,6 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
                                         time_sleep: int = 1) -> WebElement:
         time.sleep(time_sleep * self._timingFactor)
         if self._use_gui:
-            WebDriverWait(self._driver, 10 * self._timingFactor).until(method)
+            WebDriverWait(self._driver, 120 * self._timingFactor).until(method)
         queried_element: WebElement = self._driver.find_element(by=by, value=element_selector)
         return queried_element

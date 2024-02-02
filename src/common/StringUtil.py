@@ -12,7 +12,7 @@ def validate_keys_of_dictionary(settings: dict[str, str],
     error_messages: list[str] = []
     for key in mandatory_settings:
 
-        value = settings.get(str(key))
+        value: str = settings.get(str(key))
         if value is None:
             error_messages.append('{} is missing'.format(key))
 
@@ -54,7 +54,6 @@ def escape_bat_file_special_chars(input_file: str = '.\\Downloadsrc.py',
     with ResourceLock(file_path=input_file):
 
         with ResourceLock(file_path=output_file):
-
             with open(output_file, 'w') as outputStream:
                 with open(input_file, 'r') as inputStream:
                     for line in inputStream:

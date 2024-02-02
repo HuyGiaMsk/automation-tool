@@ -1,21 +1,21 @@
+import importlib
+import os
 import tkinter as tk
+from logging import Logger
 from tkinter import Label, Frame, Text, HORIZONTAL, ttk, messagebox
 from tkinter.ttk import Combobox
-import os
-import importlib
-from logging import Logger
 from types import ModuleType
 
+from src.common.Constants import ROOT_DIR
+from src.common.FileUtil import load_key_value_from_file_properties
+from src.common.ResourceLock import ResourceLock
+from src.common.ThreadLocalLogger import get_current_logger
 from src.gui.TextBoxLoggingHandler import setup_textbox_logger
 from src.observer.Event import Event
 from src.observer.EventBroker import EventBroker
 from src.observer.EventHandler import EventHandler
 from src.observer.PercentChangedEvent import PercentChangedEvent
 from src.task.AutomatedTask import AutomatedTask
-from src.common.Constants import ROOT_DIR
-from src.common.FileUtil import load_key_value_from_file_properties
-from src.common.ResourceLock import ResourceLock
-from src.common.ThreadLocalLogger import get_current_logger
 
 
 class GUIApp(tk.Tk, EventHandler):
@@ -44,7 +44,7 @@ class GUIApp(tk.Tk, EventHandler):
         )
         self.automated_tasks_dropdown.pack()
 
-        self.content_frame = Frame(self.container_frame, width=500, height=300, bd=1, relief=tk.SOLID)
+        self.content_frame = Frame(self.container_frame, width=1000, height=600, bd=1, relief=tk.SOLID)
         self.content_frame.pack(padx=20, pady=20)
 
         self.automated_tasks_dropdown.bind("<<ComboboxSelected>>", self.handle_task_dropdown_change)
@@ -136,7 +136,7 @@ class GUIApp(tk.Tk, EventHandler):
         setting_file = os.path.join(ROOT_DIR, 'input', '{}.properties'.format(selected_task))
         input_setting_values: dict[str, str] = load_key_value_from_file_properties(setting_file)
         input_setting_values['invoked_class'] = selected_task
-        input_setting_values['use.GUI'] = 'False'
+        input_setting_values['use.GUI'] = 'True'
         input_setting_values['time.unit.factor'] = '1'
 
         self.current_input_setting_values = input_setting_values
@@ -190,7 +190,7 @@ class GUIApp(tk.Tk, EventHandler):
         self.update_frame_content(selected_task)
 
     def handle_click_on_perform_task_button(self, task: AutomatedTask):
-        if task.is_alive():
+        if task is not None and task.is_alive():
             messagebox.showinfo("Have a task currently running",
                                 "Please terminate the current task before run a new one")
             return
