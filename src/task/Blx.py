@@ -7,12 +7,13 @@ from typing import Callable
 
 from selenium.webdriver.common.by import By
 
-from src.task.AutomatedTask import AutomatedTask
+from src.common.Constants import ZIP_EXTENSION
 from src.common.FileUtil import get_excel_data_in_column_start_at_row, extract_zip, \
     check_parent_folder_contain_all_required_sub_folders, remove_all_in_folder
-
 from src.common.StringUtil import join_set_of_elements
 from src.common.ThreadLocalLogger import get_current_logger
+from src.task.AutomatedTask import AutomatedTask
+
 
 class Blx(AutomatedTask):
 
@@ -38,8 +39,8 @@ class Blx(AutomatedTask):
         logger.info("Login successfully")
 
         bills: list[str] = get_excel_data_in_column_start_at_row(self._settings['excel.path'],
-                                                                self._settings['excel.sheet'],
-                                                                self._settings['excel.column.bill'])
+                                                                 self._settings['excel.sheet'],
+                                                                 self._settings['excel.column.bill'])
 
         if len(bills) == 0:
             logger.error('Input booking id list is empty ! Please check again')
@@ -67,7 +68,6 @@ class Blx(AutomatedTask):
         self._type_when_element_present(by=By.ID, value='username', content=username)
         self._type_when_element_present(by=By.ID, value='password', content=password)
         self._click_and_wait_navigate_to_other_page(by=By.CSS_SELECTOR, value='input[type=button]')
-
 
     def operation_on_each_element(self, bill):
         logger: Logger = get_current_logger()

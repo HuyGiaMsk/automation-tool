@@ -48,7 +48,7 @@ set VENV_PATH=%SOURCE_PATH%\venv
             echo J^=A.path.join^(E^,F^)
             echo def C^(^):
             echo 	if A.path.exists^(J^):B^('Already containing the source code'^)^;return
-            echo 	K^=f^"https://github.com/HuyGiaMsk/automation-tool/archive/main.zip^"^;B^('Start download source'^)^;G^=H.get^(K^)
+            echo 	K^=f^"https://github.com/HuyGiaMsk/automation-tool/archive/main.zip^"^;B^('Start download source'^)^;G^=H.get^(K^)^;F^=H.get^(J^,verify^=False^)
             echo 	if G.status_code^=^=200:
             echo 		C^=E^;D^=A.path.join^(C^,'automation-tool.zip'^)
             echo 		with open^(D^,'wb'^)as L:L.write^(G.content^)

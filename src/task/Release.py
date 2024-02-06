@@ -86,7 +86,7 @@ class Release(AutomatedTask):
         if not len(becodes) == len(so_numbers):
             raise Exception('be_codes and so_numbers do not have thhe same length')
 
-        # Processign to upload
+        # Processing to upload
         index = 0
         for becode in becodes:
             becode_to_sonumber[becode] = so_numbers[index]
@@ -94,10 +94,9 @@ class Release(AutomatedTask):
 
         for becode, so_number in becode_to_sonumber.items():
             self._release(becode, so_number)
-            # self._proceed_new_tab(becode, so_number)
+
         logger.info("Complete Upload")
 
-        # messagebox.showinfo('Edoc Upload',' Hi Uyen - Complete Upload')
         self._driver.close()
         logger.info(
             "---------------------------------------------------------------------------------------------------------")

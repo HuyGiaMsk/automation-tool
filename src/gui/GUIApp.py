@@ -28,7 +28,7 @@ class GUIApp(tk.Tk, EventHandler):
         EventBroker.get_instance().subscribe(topic=PercentChangedEvent.event_name,
                                              observer=self)
         self.title("Automation Tool")
-        self.geometry('1920x1080')
+        self.geometry('1080x980')
 
         self.logger: Logger = get_current_logger()
 
@@ -149,10 +149,10 @@ class GUIApp(tk.Tk, EventHandler):
             setting_frame.pack(anchor="w", pady=5)
 
             # Create the label and text input widgets inside the container frame
-            field_label = Label(master=setting_frame, text=each_setting, width=15)
+            field_label = Label(master=setting_frame, text=each_setting, width=25)
             field_label.pack(side="left")
 
-            field_input = Text(master=setting_frame, width=30, height=1)
+            field_input = Text(master=setting_frame, width=80, height=1)
             field_input.pack(side="left")
 
             field_input.special_id = each_setting
@@ -162,7 +162,7 @@ class GUIApp(tk.Tk, EventHandler):
 
         perform_button = tk.Button(self.content_frame,
                                    text='Perform',
-                                   font=('Maersk Headline Bold', 10),
+                                   font=('Maersk Headline Bold', 12),
                                    command=lambda: self.handle_click_on_perform_task_button(self.automated_task))
         perform_button.pack()
 

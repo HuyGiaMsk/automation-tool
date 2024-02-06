@@ -1,4 +1,6 @@
 import time
+from datetime import datetime
+from enum import Enum
 from logging import Logger
 from typing import Callable
 
@@ -11,7 +13,13 @@ from src.common.ThreadLocalLogger import get_current_logger
 from src.task.AutomatedTask import AutomatedTask
 
 
+class BookingToInfoIndex(Enum):
+    BILL_INDEX_IN_TUPLE = 0
+    TYPE_INDEX_IN_TUPLE = 1
+
+
 class Download_Bill_Maersk(AutomatedTask):
+    bill_to_info = {}
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)
@@ -23,6 +31,7 @@ class Download_Bill_Maersk(AutomatedTask):
         return mandatory_keys
 
     def automate(self) -> None:
+
         logger: Logger = get_current_logger()
         logger.info(
             "---------------------------------------------------------------------------------------------------------")
@@ -37,10 +46,33 @@ class Download_Bill_Maersk(AutomatedTask):
         bills: list[str] = get_excel_data_in_column_start_at_row(self._settings['excel.path'],
                                                                  self._settings['excel.sheet'],
                                                                  self._settings['excel.column.bill'])
+
+        type_bill: list[str] = get_excel_data_in_column_start_at_row(self._settings['excel.path'],
+                                                                     self._settings['excel.sheet'],
+                                                                     self._settings['excel.column.doc.type'])
         if len(bills) == 0:
             logger.error('Input booking id list is empty ! Please check again')
 
-        self.perform_mainloop_on_collection(bills, Download_Bill_Maersk.operation_on_each_element)
+        if len(bills) != len(type_bill):
+            raise Exception("Please check your input data length of bills, type_bill are not equal")
+
+        index: int = 0
+        for bill in bills:
+            self.bill_to_info[bill] = (type_bill[index])
+            index += 1
+
+        last_bill: str = ''
+        for bill in bills:
+            logger.info("Processing booking : " + bill)
+            self.__navigate_and_download(bill)
+            last_bill = bill
+
+        self._driver.close()
+        logger.info(
+            "---------------------------------------------------------------------------------------------------------")
+        logger.info("End processing")
+        logger.info("It ends at {}. Press any key to end program...".format(datetime.now()))
+        # self.perform_mainloop_on_collection(bills, Download_Bill_Maersk.operation_on_each_element)
 
     def __login(self):
 
@@ -63,47 +95,80 @@ class Download_Bill_Maersk(AutomatedTask):
         username_element.send_keys(Keys.TAB)
         logger.info('inputted user name')
 
-        time.sleep(1)
+        # _______________________________________________
+        # time.sleep(5)
+        # button_element: WebElement = self._driver.execute_script(
+        #     'return document.querySelector(\'#maersk-app main form div.mt-40 mc-button#login-submit-button\').shadowRoot.querySelector(\'button\')')
+        # button_element.click()
+        # ___________________________________________________
 
-        mc_button = self._driver.execute_script('return document.querySelector(\'mc-button#login-submit-button\')')
-        shadow_root = self._driver.execute_script('return arguments[0].shadowRoot', mc_button)
-        button_inside_shadow_dom = self._driver.execute_script(
-            'return arguments[0].querySelector(\'button#button.items-center\')', shadow_root)
-
-        button_inside_shadow_dom.click()
-
-        time.sleep(1)
-
+        self._click_and_wait_navigate_to_other_page(by=By.ID, value='login-submit-button')
         logger.info('clicked button - need your access')
 
-        self._wait_navigating_to_other_page_complete(previous_url='https://www.maersk.com/portaluser/login',
-                                                     expected_end_with='https://www.maersk.com/portaluser/select-customer')
+        time.sleep(1)
+        self._click_when_element_present(by=By.CSS_SELECTOR, value='div.coi-banner__page-footer button:nth-child(3)')
 
-        self._type_when_element_present(by=By.CSS_SELECTOR,
-                                        value='fieldset div:nth-child(2) mc-c-typeahead[data-cy=country-input]',
-                                        content=country)
-        self._click_when_element_present(by=By.CSS_SELECTOR, value='mc-c-list.suggestions-list')
+        try_country_count: int = 0
+        try:
+            if try_country_count > 50:
+                raise Exception
+            country_element: WebElement = self._driver.execute_script(
+                'return document.querySelector(\'#maersk-app form mc-c-typeahead[data-cy="country-input"]\')'
+                '.shadowRoot.querySelector(\'input\')')
+            country_element.send_keys(country)
+            country_element.send_keys(Keys.ARROW_DOWN)
+            country_element.send_keys(Keys.ENTER)
+            country_element.send_keys(Keys.TAB)
 
-        self._type_when_element_present(by=By.CSS_SELECTOR,
-                                        value='fieldset div:nth-child(3) mc-c-typeahead[data-cy=office-input]',
-                                        content=office)
+            try_country_count += 1
+            time.sleep(1)
+        except:
+            logger.info('Cannot loggin in Customer Country')
 
-        self._type_when_element_present(by=By.ID, value='customer-code', content=customer_code)
+        try_office_count: int = 0
+        try:
+            if try_office_count > 50:
+                raise Exception
+            office_element: WebElement = self._driver.execute_script(
+                'return document.querySelector(\'#maersk-app form mc-c-typeahead[data-cy="office-input"]\')'
+                '.shadowRoot.querySelector(\'input\')')
+            office_element.send_keys(office)
+            office_element.send_keys(Keys.ARROW_DOWN)
+            office_element.send_keys(Keys.ENTER)
+            office_element.send_keys(Keys.TAB)
 
-        self._click_and_wait_navigate_to_other_page(by=By.CSS_SELECTOR, value='mc-button#customer-code-submit')
+            try_office_count += 1
+            time.sleep(1)
+        except:
+            logger.info('Cannot loggin in Customer Office')
 
-    def operation_on_each_element(self, bill):
+        try_customer_count: int = 0
+        try:
+            if try_customer_count > 50:
+                raise Exception
+            customer_code_element: WebElement = self._driver.execute_script(
+                'return document.querySelector(\'#maersk-app form mc-input[data-cy="customer-code-input"]\')'
+                '.shadowRoot.querySelector(\'input\')')
+            customer_code_element.send_keys(customer_code)
+            customer_code_element.send_keys(Keys.ARROW_DOWN)
+            customer_code_element.send_keys(Keys.ENTER)
+            customer_code_element.send_keys(Keys.TAB)
+
+            try_customer_count += 1
+            time.sleep(1)
+        except:
+            logger.info('Cannot loggin in Customer Code')
+        self._click_and_wait_navigate_to_other_page(by=By.ID, value='customer-code-submit')
+        time.sleep(100000)
+
+    def __navigate_and_download(self, bill):
 
         logger: Logger = get_current_logger()
-        if self.terminated is True:
-            return
-
-        with self.pause_condition:
-
-            while self.paused:
-                self.pause_condition.wait()
-
-            if self.terminated is True:
-                return
 
         logger.info("Processing bill : " + bill)
+        self._driver.get('https://www.maersk.com/shipment-details/{}/documents'.format(bill))
+
+        list_element: list[WebElement] = self._driver.execute_script(
+            'return document.querySelector(\'#main #maersk-app mc-tab-bar \').shadowRoot.querySelector(\'.documents-list.mb-5\')')
+
+        self.find_matched_option_shadow(by=By.CSS_SELECTOR, list_options_selector=list_element, search_keyword='a')

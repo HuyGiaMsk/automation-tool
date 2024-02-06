@@ -12,7 +12,6 @@ set VENV_PATH=%SOURCE_PATH%\venv
         echo Virtual environment is already installed in %VENV_PATH%
         goto :eof
     ) else (
-        echo Hung
         call python -m venv "%VENV_PATH%"
         call "%VENV_PATH%"\Scripts\activate
 

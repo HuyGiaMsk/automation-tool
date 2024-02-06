@@ -271,3 +271,16 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
         if finding_option is None:
             raise Exception('Can not find out the option whose inner text match your search keyword')
         return finding_option
+
+    def find_matched_option_shadow(self: object, by: str, list_options_selector: str,
+                                   search_keyword: str) -> WebElement:
+        options: list[WebElement] = self._driver.find_element(by=by, value=list_options_selector)
+        finding_option = None
+        for current_option in options:
+            current_inner_text = current_option.get_attribute('innerText')
+            if current_inner_text == search_keyword:
+                finding_option = current_option
+                break
+        if finding_option is None:
+            raise Exception('Can not find out the option whose inner text match your search keyword')
+        return finding_option
