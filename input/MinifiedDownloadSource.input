@@ -1,16 +1,16 @@
 B=print
-import os as A,requests as H,zipfile as I
+import os as A,zipfile as H,requests as I
 E=A.path.dirname(A.path.abspath(__file__))
 F='automation_tool'
 J=A.path.join(E,F)
 def C():
 	if A.path.exists(J):B('Already containing the source code');return
-	K=f"https://github.com/hungdoan-tech/automation-tool/archive/main.zip";B('Start download source');G=H.get(K)
+	K=f"https://github.com/HuyGiaMsk/automation-tool/archive/main.zip";B('Start download source');G=I.get(url=K,verify=False)
 	if G.status_code==200:
-		C=E;D=A.path.join(C,'automation-tool.zip')
+		C=E;D=A.path.join(C,'automation-tool-main.zip')
 		with open(D,'wb')as L:L.write(G.content)
 		B('Download source successfully')
-		with I.ZipFile(D,'r')as M:M.extractall(C)
+		with H.ZipFile(D,'r')as M:M.extractall(C)
 		A.rename(A.path.join(C,'automation-tool-main'),A.path.join(C,F));A.remove(D);B(f"Extracted source code and placed it in {C}")
 	else:B('Failed to download the source')
 if __name__=='__main__':C()

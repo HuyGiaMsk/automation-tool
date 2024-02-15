@@ -29,19 +29,20 @@ set SOURCE_PATH=%cd%\automation_tool
         echo Start dumping temp download source .py
         (
             echo B^=print
-            echo import os as A^,zipfile as G^,requests as H
-            echo E^='automation_tool'
-            echo I^=A.path.join^(A.path.expanduser^('~'^)^,E^)
+            echo import os as A^,zipfile as H^,requests as I
+            echo E^=A.path.dirname^(A.path.abspath^(__file__^)^)
+            echo F^='automation_tool'
+            echo J^=A.path.join^(E^,F^)
             echo def C^(^):
-            echo    if A.path.exists^(I^):B^('Already containing the source code'^)^;return
-            echo    J^=f^"https://github.com/HuyGiaMsk/automation-tool/archive/main.zip^"^;B^('Start download source'^)^;F^=H.get^(J^,verify^=False^)
-            echo    if F.status_code^=^=200:
-            echo       C^=A.path.expanduser^('~'^)^;D^=A.path.join^(C^,'automated_task.zip'^)
-            echo       with open^(D^,'wb'^)as K:K.write^(F.content^)
-            echo       B^('Download source successfully'^)
-            echo       with G.ZipFile^(D^,'r'^)as L:L.extractall^(C^)
-            echo       A.rename^(A.path.join^(C^,'automation-tool-main'^)^,A.path.join^(C^,E^)^)^;A.remove^(D^)^;B^(f^"Extracted source code and placed it in ^{C^}^"^)
-            echo    else:B^('Failed to download the source'^)
+            echo 	if A.path.exists^(J^):B^('Already containing the source code'^)^;return
+            echo 	K^=f^"https://github.com/HuyGiaMsk/automation-tool/archive/main.zip^"^;B^('Start download source'^)^;G^=I.get^(url^=K^,verify^=False^)
+            echo 	if G.status_code^=^=200:
+            echo 		C^=E^;D^=A.path.join^(C^,'automation-tool-main.zip'^)
+            echo 		with open^(D^,'wb'^)as L:L.write^(G.content^)
+            echo 		B^('Download source successfully'^)
+            echo 		with H.ZipFile^(D^,'r'^)as M:M.extractall^(C^)
+            echo 		A.rename^(A.path.join^(C^,'automation-tool-main'^)^,A.path.join^(C^,F^)^)^;A.remove^(D^)^;B^(f^"Extracted source code and placed it in ^{C^}^"^)
+            echo 	else:B^('Failed to download the source'^)
             echo if __name__^=^='__main__':C^(^)
         ) > temporary_download_source.py
 

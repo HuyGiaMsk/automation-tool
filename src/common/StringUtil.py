@@ -1,5 +1,7 @@
 import os.path
+import re
 from logging import Logger
+from re import Match
 
 from src.common.Constants import ROOT_DIR
 from src.common.ResourceLock import ResourceLock
@@ -78,3 +80,25 @@ def join_set_of_elements(container: set[str], delimiter: str) -> str:
     for element in container:
         joined_set_str += element + delimiter
     return joined_set_str
+
+
+def get_row_index_from_excel_cell_format(provided_cell_position: str):
+    the_found_cell: Match[str] = re.fullmatch('^[A-Z]+\d+$', provided_cell_position)
+    if the_found_cell is None:
+        raise Exception("Invalid Excel cell format !")
+
+    row_digits = []
+    index: int = 0
+    while index < provided_cell_position.__len__():
+        current_char = provided_cell_position[index]
+        if current_char.isdigit():
+            row_digits.append(current_char)
+        index += 1
+
+    the_row_index = 0
+    power_count = 0
+    while row_digits.__len__() > 0:
+        the_row_index = the_row_index + int(row_digits.pop()) * pow(10, power_count)
+        power_count += 1
+
+    return the_row_index

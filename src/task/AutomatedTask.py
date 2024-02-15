@@ -118,12 +118,16 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
             options.add_argument("--window-size=%s" % "1920,1080")
             options.add_argument("--use-fake-ui-for-media-stream")
             options.add_argument("--enable-javascript")
+
         else:
             options.add_argument("--start-maximized")
 
         options.add_argument('--enable-extensions')
         options.add_argument('--enable-infobars')
         options.add_argument('--enable-notifications')
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option("useAutomationExtension", False)
 
         download_path: str = self._download_folder
         prefs: dict = {
@@ -165,7 +169,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
     def _wait_navigating_to_other_page_complete(self, previous_url: str, expected_end_with: str = None) -> None:
         logger: Logger = get_current_logger()
         attempt_counting: int = 0
-        max_attempt: int = 120
+        max_attempt: int = 1200
         while True:
             current_url: str = self._driver.current_url
 
@@ -253,10 +257,10 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
                                         by: str,
                                         element_selector: str,
                                         method: Callable[[AnyDriver], WebElement],
-                                        time_sleep: int = 1) -> WebElement:
-        time.sleep(time_sleep * self._timingFactor)
+                                        first_time_sleep: int = 1) -> WebElement:
+        time.sleep(first_time_sleep * self._timingFactor)
         if self._use_gui:
-            WebDriverWait(self._driver, 120 * self._timingFactor).until(method)
+            WebDriverWait(self._driver, 30 * self._timingFactor).until(method)
         queried_element: WebElement = self._driver.find_element(by=by, value=element_selector)
         return queried_element
 
@@ -274,7 +278,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
 
     def find_matched_option_shadow(self: object, by: str, list_options_selector: str,
                                    search_keyword: str) -> WebElement:
-        options: list[WebElement] = self._driver.find_element(by=by, value=list_options_selector)
+        options: list[WebElement] = self._driver.find_elements(by=by, value=list_options_selector)
         finding_option = None
         for current_option in options:
             current_inner_text = current_option.get_attribute('innerText')
