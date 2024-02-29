@@ -8,6 +8,7 @@ from logging import Logger
 from typing import Callable
 
 from selenium import webdriver
+from selenium.common import TimeoutException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
@@ -83,7 +84,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
         except Exception as exception:
             logger.exception(str(exception))
 
-        logger.info("It ends at {}. Press any key to end program...".format(datetime.now()))
+        logger.info("Done task. It ends at {}".format(datetime.now()))
 
     def perform_mainloop_on_collection(self,
                                        collection,
@@ -121,10 +122,12 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
 
         else:
             options.add_argument("--start-maximized")
+        username = os.getlogin()
 
-        options.add_argument('--enable-extensions')
-        options.add_argument('--enable-infobars')
-        options.add_argument('--enable-notifications')
+        options.add_argument(r'--user-data-dir=C:\Users\{}\AppData\Local\Google\Chrome\User Data'.format(username))
+        options.add_argument('--disable-extensions')
+        options.add_argument('--disable-infobars')
+        options.add_argument('--disable-notifications')
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
         options.add_experimental_option("useAutomationExtension", False)
@@ -253,14 +256,30 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
                                                                        time_sleep)
         return web_element
 
+    def _try_to_get_if_element_present(self, by: str, value: str, time_sleep: int = 1, waiting_time: int = 30
+                                       ) -> WebElement:
+
+        try:
+            web_element: WebElement = self.__get_element_satisfy_predicate(by,
+                                                                           value,
+                                                                           expected_conditions.presence_of_element_located(
+                                                                               (by, value)),
+                                                                           time_sleep,
+                                                                           waiting_time)
+
+            return web_element
+        except TimeoutException:
+            return None
+
     def __get_element_satisfy_predicate(self,
                                         by: str,
                                         element_selector: str,
                                         method: Callable[[AnyDriver], WebElement],
-                                        first_time_sleep: int = 1) -> WebElement:
+                                        first_time_sleep: int = 1,
+                                        waiting_time: int = 30) -> WebElement:
         time.sleep(first_time_sleep * self._timingFactor)
         if self._use_gui:
-            WebDriverWait(self._driver, 30 * self._timingFactor).until(method)
+            WebDriverWait(self._driver, waiting_time * self._timingFactor).until(method)
         queried_element: WebElement = self._driver.find_element(by=by, value=element_selector)
         return queried_element
 

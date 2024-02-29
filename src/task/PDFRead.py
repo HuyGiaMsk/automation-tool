@@ -63,3 +63,4 @@ class PDFRead(AutomatedTask):
                 pdf_counter += 1
 
         excel_reader.close(workbook=workbook)
+        excel_reader.quit_session()

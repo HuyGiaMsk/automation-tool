@@ -25,3 +25,7 @@ class ExcelReaderProvider:
     @abstractmethod
     def close(self, workbook):
         pass
+
+    @abstractmethod
+    def quit_session(self):
+        pass

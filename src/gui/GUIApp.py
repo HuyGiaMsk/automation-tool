@@ -6,6 +6,8 @@ from tkinter import Label, Frame, Text, HORIZONTAL, ttk, messagebox
 from tkinter.ttk import Combobox
 from types import ModuleType
 
+from PIL import Image, ImageTk
+
 from src.common.Constants import ROOT_DIR
 from src.common.FileUtil import load_key_value_from_file_properties
 from src.common.ResourceLock import ResourceLock
@@ -23,6 +25,7 @@ class GUIApp(tk.Tk, EventHandler):
     def __init__(self):
         super().__init__()
         self.automated_task = None
+        self.logger: Logger = get_current_logger()
 
         self.protocol("WM_DELETE_WINDOW", self.handle_close_app)
         EventBroker.get_instance().subscribe(topic=PercentChangedEvent.event_name,
@@ -30,22 +33,39 @@ class GUIApp(tk.Tk, EventHandler):
         self.title("Automation Tool")
         self.geometry('1080x980')
 
-        self.logger: Logger = get_current_logger()
-
         self.container_frame = tk.Frame(self)
         self.container_frame.pack()
 
-        self.myLabel = Label(self.container_frame, text='Automation Tool', font=('Maersk Headline Bold', 16))
-        self.myLabel.pack()
+        image_path = os.path.join(ROOT_DIR, 'resouce', 'img', 'framework.png')
+        background_image = Image.open(image_path)
+        background_image = background_image.resize((1080, 980), Image.ANTIALIAS)
+        photo = ImageTk.PhotoImage(background_image)
+        canvas = tk.Canvas(self.container_frame, width=1080, height=980)
+        canvas.create_image(0, 0, anchor=tk.NW, image=photo)
+        canvas.pack()
 
+        # self.myLabel = Label(self.container_frame, text='Automation Tool', font=('Maersk Headline Bold', 16))
+        # self.myLabel.pack()
+
+        # self.automated_tasks_dropdown = Combobox(
+        #     master=self.container_frame,
+        #     state="readonly",
+        # )
+
+        self.myLabel = tk.Label(canvas, text='Automation Tool', font=('Maersk Headline Bold', 16))
+        self.myLabel.pack()
         self.automated_tasks_dropdown = Combobox(
-            master=self.container_frame,
+            master=canvas,
             state="readonly",
         )
+
+        self.content_frame = tk.Frame(canvas, width=1000, height=600, bd=1, relief=tk.SOLID)
+        self.content_frame.pack(padx=20, pady=20)
+
         self.automated_tasks_dropdown.pack()
 
-        self.content_frame = Frame(self.container_frame, width=1000, height=600, bd=1, relief=tk.SOLID)
-        self.content_frame.pack(padx=20, pady=20)
+        # self.content_frame = Frame(self.container_frame, width=1000, height=600, bd=1, relief=tk.SOLID)
+        # self.content_frame.pack(padx=20, pady=20)
 
         self.automated_tasks_dropdown.bind("<<ComboboxSelected>>", self.handle_task_dropdown_change)
 
@@ -53,21 +73,6 @@ class GUIApp(tk.Tk, EventHandler):
 
         self.current_input_setting_values = {}
         self.current_automated_task_name = None
-
-        self.custom_progressbar_text_style = ttk.Style()
-        self.custom_progressbar_text_style.layout("Text.Horizontal.TProgressbar",
-                                                  [('Horizontal.Progressbar.trough',
-                                                    {'children': [('Horizontal.Progressbar.pbar',
-                                                                   {'side': 'left', 'sticky': 'ns'}),
-                                                                  ("Horizontal.Progressbar.label",
-                                                                   {"sticky": ""})],
-                                                     'sticky': 'nswe'})])
-        self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar", text="None 0 %")
-
-        self.progressbar = ttk.Progressbar(self.container_frame, orient=HORIZONTAL,
-                                           length=500, mode="determinate", maximum=100
-                                           , style="Text.Horizontal.TProgressbar")
-        self.progressbar.pack(pady=20)
 
         self.is_task_currently_pause: bool = False
         self.pause_button = tk.Button(self.container_frame,
@@ -80,7 +85,22 @@ class GUIApp(tk.Tk, EventHandler):
                                           command=lambda: self.handle_terminate_button())
         self.terminate_button.pack()
 
-        self.textbox: Text = tk.Text(self.container_frame, wrap="word", state=tk.DISABLED, width=40, height=10)
+        self.custom_progressbar_text_style = ttk.Style()
+        self.custom_progressbar_text_style.layout("Text.Horizontal.TProgressbar",
+                                                  [('Horizontal.Progressbar.trough',
+                                                    {'children': [('Horizontal.Progressbar.pbar',
+                                                                   {'side': 'left', 'sticky': 'ns'}),
+                                                                  ("Horizontal.Progressbar.label",
+                                                                   {"sticky": ""})],
+                                                     'sticky': 'nswe'})])
+        self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar", text="None 0 %")
+
+        self.progressbar = ttk.Progressbar(self.container_frame, orient=HORIZONTAL,
+                                           length=800, mode="determinate", maximum=100
+                                           , style="Text.Horizontal.TProgressbar")
+        self.progressbar.pack(pady=10)
+
+        self.textbox: Text = tk.Text(self.container_frame, wrap="word", state=tk.DISABLED, width=100, height=100)
         self.textbox.pack()
         setup_textbox_logger(self.textbox)
 
@@ -164,7 +184,7 @@ class GUIApp(tk.Tk, EventHandler):
                                    text='Perform',
                                    font=('Maersk Headline Bold', 12),
                                    command=lambda: self.handle_click_on_perform_task_button(self.automated_task))
-        perform_button.pack()
+        perform_button.pack(padx=1)
 
     def handle_close_app(self):
         self.persist_settings_to_file()
@@ -215,7 +235,7 @@ class GUIApp(tk.Tk, EventHandler):
         return
 
     def handle_terminate_button(self):
-        self.automated_task.terminate()
+        self.automated_task.quit_session()
         self.automated_task = None
         self.progressbar['value'] = 0
         self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",

@@ -27,6 +27,11 @@ class Download_Bill_Maersk(AutomatedTask):
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)
         self._excel_provider = XlwingProvider()
+        self.bill_type_to_download_code: dict[str, str] = {
+            'certifiedTrueCopy': 'CertifiedTrueCopy',
+            'waybill': 'Waybill',
+            'verifyCopy': 'VerifyCopy'
+        }
 
     def mandatory_settings(self) -> list[str]:
         mandatory_keys: list[str] = ['username', 'password', 'download.folder', 'excel.path', 'excel.sheet',
@@ -40,11 +45,17 @@ class Download_Bill_Maersk(AutomatedTask):
         logger.info(
             "---------------------------------------------------------------------------------------------------------")
         logger.info("Start processing")
+        self._driver.get('https://www.maersk.com/hub/')
 
-        self._driver.get('https://www.maersk.com/portaluser/login')
+        current_url: str = self._driver.current_url
 
-        logger.info('Try to login')
-        self.__login()
+        if not current_url.endswith('hub/'):
+
+            find_element_login: WebElement = self._get_when_element_present(by=By.CSS_SELECTOR,
+                                                                            value='#maersk-app main form mc-input#username')
+            if find_element_login is not None:
+                self.__login()
+
         logger.info("Login successfully")
 
         bills: list[str] = get_excel_data_in_column_start_at_row(self._settings['excel.path'],
@@ -72,6 +83,12 @@ class Download_Bill_Maersk(AutomatedTask):
             excel_row_index += 1
 
         self._driver.close()
+
+        workbook_path = self._settings['excel.path']
+        workbook = self._excel_provider.get_workbook(workbook_path)
+        self._excel_provider.close(workbook=workbook)
+        self._excel_provider.quit_session()
+
         logger.info(
             "---------------------------------------------------------------------------------------------------------")
         logger.info("End processing")
@@ -87,8 +104,17 @@ class Download_Bill_Maersk(AutomatedTask):
         office: str = self._settings['office']
         customer_code: str = self._settings['customer_code']
 
-        self._click_when_element_present(by=By.CSS_SELECTOR, value='div.coi-banner__page-footer button:nth-child(3)')
-        logger.info('Accepted all cookies')
+        try_accept_cookies: int = 0
+        try:
+            if try_accept_cookies > 10:
+                raise Exception
+
+            self._click_when_element_present(by=By.CSS_SELECTOR,
+                                             value='div.coi-banner__page-footer button:nth-child(3)')
+            logger.info('Accepted all cookies')
+            try_accept_cookies += 1
+        except:
+            logger.info('All cookies accepted before')
 
         self._get_when_element_present(by=By.CSS_SELECTOR, value='#maersk-app main form mc-input#username')
 
@@ -106,6 +132,7 @@ class Download_Bill_Maersk(AutomatedTask):
         self._click_when_element_present(by=By.CSS_SELECTOR, value='div.coi-banner__page-footer button:nth-child(3)')
 
         # try to input customer data
+        # input country
         try_country_count: int = 0
         try:
             if try_country_count > 50:
@@ -122,6 +149,7 @@ class Download_Bill_Maersk(AutomatedTask):
         except:
             logger.info('Cannot loggin in Customer Country')
 
+        # input office
         try_office_count: int = 0
         try:
             if try_office_count > 50:
@@ -138,6 +166,7 @@ class Download_Bill_Maersk(AutomatedTask):
         except:
             logger.info('Cannot loggin in Customer Office')
 
+        # input customer code
         try_customer_count: int = 0
         try:
             if try_customer_count > 50:
@@ -171,7 +200,7 @@ class Download_Bill_Maersk(AutomatedTask):
         except:
             logger.info('Cannot seting account')
 
-        logger.info('Done setting account')
+        logger.info('Done setting account, progressing to navigate and download Bill')
 
     def __navigate_and_download(self, bill: str, excel_row_index: int):
 
@@ -181,19 +210,20 @@ class Download_Bill_Maersk(AutomatedTask):
 
         self._driver.get('https://www.maersk.com/shipment-details/{}/documents'.format(bill))
 
-        shipment_content = self._get_when_element_present(by=By.CSS_SELECTOR,
-                                                          value='header.shipment-summary section.shipment-summary__content')
+        shipment_content = self._try_to_get_if_element_present(by=By.CSS_SELECTOR,
+                                                               value='header.shipment-summary section.shipment-summary__content',
+                                                               waiting_time=4)
 
         path_to_excel_contain_pdfs_content = self._settings['excel.path']
         sheet_name = self._settings['excel.sheet']
 
         if shipment_content is None:
             self.filling_value(workbook_path=path_to_excel_contain_pdfs_content, sheet_name=sheet_name,
-                               row_index=excel_row_index, status='Missing')
+                               row_index=excel_row_index, status='Not yet')
             return
 
         option_documents: WebElement = self.find_matched_option_shadow_bill_msk(by=By.CSS_SELECTOR,
-                                                                                list_options_selector='#main #maersk-app mc-tab-bar div:nth-child(1) .documents-list__group div.tasks-documents-card',
+                                                                                list_options_selector='#main #maersk-app mc-tab-bar div:nth-child(1) div.documents-list__group div.tasks-documents-card',
                                                                                 search_keyword=self.bill_to_info.get(
                                                                                     bill))
 
@@ -202,19 +232,31 @@ class Download_Bill_Maersk(AutomatedTask):
                                row_index=excel_row_index, status='Missing')
             return
 
+        # click button download
+        # Dậu đổ bìm leo ver1
+        button_inside_shadow_root = self._driver.execute_script('''
+            return arguments[0].shadowRoot.querySelector('button');
+        ''', option_documents.find_element(By.CSS_SELECTOR, 'mc-button'))
+
+        # Dậu đổ bìm leo ver2
+        self._driver.execute_script("arguments[0].click();", button_inside_shadow_root)
+
+        bill_type = option_documents.find_element(by=By.CSS_SELECTOR, value='h3').get_attribute('data-test')
+        download_code = self.bill_type_to_download_code.get(bill_type)
+        file_path: str = '{}\{}_{}.pdf'.format(self._settings['download.folder'], bill, download_code)
+
+        self._wait_download_file_complete(file_path=file_path)
+
         self.filling_value(workbook_path=path_to_excel_contain_pdfs_content, sheet_name=sheet_name,
                            row_index=excel_row_index, status='Done')
-
-        option_documents.find_element(by=By.CSS_SELECTOR, value="mc-button")
-        name = option_documents.find_element(by=By.CSS_SELECTOR, value='h3').get_attribute('data-test')
-
-        file_path: str = '{}\{}_{}.pdf'.format(self._settings['download.folder'], bill, name)
-
-        self._wait_download_file_complete(file_path='{}_{}.pdf'.format(bill, name))
 
         root_dir = os.path.dirname(file_path)
         source = file_path
         des = os.path.join(root_dir, '{}.pdf'.format(bill))
+
+        if os.path.exists(des):
+            os.remove(des)
+
         os.rename(source, des)
 
     def find_matched_option_shadow_bill_msk(self: object, by: str, list_options_selector: str,
@@ -222,12 +264,10 @@ class Download_Bill_Maersk(AutomatedTask):
         options: list[WebElement] = self._driver.find_elements(by=by, value=list_options_selector)
         finding_option = None
         for current_option in options:
-            current_inner_text = current_option.find_element(by=By.CSS_SELECTOR, value='h3').get_attribute('innerText')
+            current_inner_text = current_option.find_element(by=By.CSS_SELECTOR, value='h3').get_attribute('data-test')
             if current_inner_text.lower() in search_keyword.lower():
                 finding_option = current_option
                 break
-        # if finding_option is None:
-        #     raise Exception('Can not find out the option whose inner text match your search keyword')
         return finding_option
 
     def filling_value(self, workbook_path, sheet_name: str, row_index: int, status: str):

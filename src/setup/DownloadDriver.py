@@ -1,13 +1,13 @@
 import os
+import re
+import zipfile
+from logging import Logger
 
 import requests
-import zipfile
 import wget
-import re
 
-from logging import Logger
-from src.common.FileUtil import remove_all_in_folder
 from src.common.Constants import PATH_TO_DRIVER, PREFIX_DRIVER_NAME, DRIVER_EXTENSION
+from src.common.FileUtil import remove_all_in_folder
 from src.common.ThreadLocalLogger import get_current_logger
 
 
@@ -27,7 +27,7 @@ def get_latest_version_from_google(base_number_version: str) -> str:
 
 def get_current_local_chrome_base_version() -> str:
     logger: Logger = get_current_logger()
-    base_number_version: str = '119'
+    base_number_version: str = '121'
     chrome_registry = os.popen(r'reg query "HKEY_CURRENT_USER\Software\Google\Chrome\BLBeacon" /v version')
     replies = chrome_registry.read()
     replies = replies.split('\n')
@@ -59,7 +59,7 @@ def place_suitable_chromedriver():
             download_url = "https://chromedriver.storage.googleapis.com/" + specific_version + "/chromedriver_win32.zip"
             extracted_folder = ''
         else:
-            download_url = ("https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/" + specific_version +
+            download_url = ("https://storage.googleapis.com/chrome-for-testing-public/" + specific_version +
                             "/win64/chromedriver-win64.zip")
             extracted_folder = 'chromedriver-win64'
 
