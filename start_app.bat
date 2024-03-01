@@ -9,6 +9,7 @@ set "VENV_PATH=%SOURCE_PATH%\venv"
 :: Check if Python is installed
 echo - Checking if Python is installed
 call python --version >NUL 2>&1
+
 if %errorlevel%==0 (
     echo - Python is already installed
 ) else (
@@ -31,7 +32,7 @@ set "ENTRY_POINT=%CD%"
 
 :: Determine which entry point to invoke based on the argument
 set "PYTHONPATH=%ENTRY_POINT%"
-if "%~1"=="console" (
+if "%~1"=="" or "console" (
     echo - Trying to find and invoke the console entry point at %ENTRY_POINT%
     call python -m src.console.EntryPoint
 ) else if "%~1"=="gui" (
