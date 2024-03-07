@@ -2,11 +2,9 @@ import importlib
 import os
 import tkinter as tk
 from logging import Logger
-from tkinter import Label, Frame, Text, HORIZONTAL, ttk, messagebox
+from tkinter import Label, Frame, Text, HORIZONTAL, ttk, messagebox, filedialog
 from tkinter.ttk import Combobox
 from types import ModuleType
-
-from PIL import Image, ImageTk
 
 from src.common.Constants import ROOT_DIR
 from src.common.FileUtil import load_key_value_from_file_properties
@@ -24,6 +22,7 @@ class GUIApp(tk.Tk, EventHandler):
 
     def __init__(self):
         super().__init__()
+
         self.automated_task = None
         self.logger: Logger = get_current_logger()
 
@@ -32,43 +31,24 @@ class GUIApp(tk.Tk, EventHandler):
                                              observer=self)
         self.title("Automation Tool")
         self.geometry('1080x980')
+        self.configure(bg="#FFFFFF")
 
-        self.container_frame = tk.Frame(self)
+        self.container_frame = tk.Frame(self, bg="#FFFFFF")
         self.container_frame.pack()
 
-        image_path = os.path.join(ROOT_DIR, 'resouce', 'img', 'framework.png')
-        background_image = Image.open(image_path)
-        background_image = background_image.resize((1080, 980), Image.ANTIALIAS)
-        photo = ImageTk.PhotoImage(background_image)
-        canvas = tk.Canvas(self.container_frame, width=1080, height=980)
-        canvas.create_image(0, 0, anchor=tk.NW, image=photo)
-        canvas.pack()
-
-        # self.myLabel = Label(self.container_frame, text='Automation Tool', font=('Maersk Headline Bold', 16))
-        # self.myLabel.pack()
-
-        # self.automated_tasks_dropdown = Combobox(
-        #     master=self.container_frame,
-        #     state="readonly",
-        # )
-
-        self.myLabel = tk.Label(canvas, text='Automation Tool', font=('Maersk Headline Bold', 16))
+        self.myLabel = Label(self.container_frame, text='Automation Tool', font=('Maersk Text Bold', 18),
+                             bg="#FFFFFF", fg="#42B0D5", background='#FFFFFF', width=1080)
         self.myLabel.pack()
-        self.automated_tasks_dropdown = Combobox(
-            master=canvas,
-            state="readonly",
-        )
 
-        self.content_frame = tk.Frame(canvas, width=1000, height=600, bd=1, relief=tk.SOLID)
+        self.automated_tasks_dropdown = Combobox(master=self.container_frame, state="readonly", width=110, height=20,
+                                                 background='#EDEDED')
+        self.automated_tasks_dropdown.pack(padx=20, pady=20)
+
+        self.content_frame = Frame(self.container_frame, width=1080, height=600, bd=1, relief=tk.SOLID, bg='#FFFFFF',
+                                   borderwidth=0)
         self.content_frame.pack(padx=20, pady=20)
 
-        self.automated_tasks_dropdown.pack()
-
-        # self.content_frame = Frame(self.container_frame, width=1000, height=600, bd=1, relief=tk.SOLID)
-        # self.content_frame.pack(padx=20, pady=20)
-
         self.automated_tasks_dropdown.bind("<<ComboboxSelected>>", self.handle_task_dropdown_change)
-
         self.populate_task_dropdown()
 
         self.current_input_setting_values = {}
@@ -77,12 +57,18 @@ class GUIApp(tk.Tk, EventHandler):
         self.is_task_currently_pause: bool = False
         self.pause_button = tk.Button(self.container_frame,
                                       text='Pause',
-                                      command=lambda: self.handle_pause_button())
+                                      command=lambda: self.handle_pause_button(),
+                                      bg='#FFA201', fg='#FFFFFF', font=('Maersk Text', 11),
+                                      width=9, height=1, activeforeground='#FFA201'
+                                      )
         self.pause_button.pack()
 
         self.terminate_button = tk.Button(self.container_frame,
-                                          text='Terminate',
-                                          command=lambda: self.handle_terminate_button())
+                                          text='Reset',
+                                          command=lambda: self.handle_terminate_button(),
+                                          bg='#FA6A55', fg='#FFFFFF', font=('Maersk Text', 11),
+                                          width=9, height=1, activeforeground='#FA6A55'
+                                          )
         self.terminate_button.pack()
 
         self.custom_progressbar_text_style = ttk.Style()
@@ -93,14 +79,15 @@ class GUIApp(tk.Tk, EventHandler):
                                                                   ("Horizontal.Progressbar.label",
                                                                    {"sticky": ""})],
                                                      'sticky': 'nswe'})])
-        self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar", text="None 0 %")
-
+        self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar", text="None 0 %",
+                                                     background='#B5E0F5', troughcolor='#42B0D5')
         self.progressbar = ttk.Progressbar(self.container_frame, orient=HORIZONTAL,
                                            length=800, mode="determinate", maximum=100
                                            , style="Text.Horizontal.TProgressbar")
         self.progressbar.pack(pady=10)
 
-        self.textbox: Text = tk.Text(self.container_frame, wrap="word", state=tk.DISABLED, width=100, height=100)
+        self.textbox: Text = tk.Text(self.container_frame, wrap="word", state=tk.DISABLED, width=100, height=100,
+                                     background='#545454', font=('Maersk Text', 10), foreground='#FFFFFF')
         self.textbox.pack()
         setup_textbox_logger(self.textbox)
 
@@ -134,6 +121,7 @@ class GUIApp(tk.Tk, EventHandler):
             with open(file_path, 'a') as file:
                 for key, value in self.current_input_setting_values.items():
                     file.write(f"{key} = {value}\n")
+        self.logger.info("Data persisted successfully.")
 
     def update_field_data(self, event):
         text_widget = event.widget
@@ -156,35 +144,58 @@ class GUIApp(tk.Tk, EventHandler):
         setting_file = os.path.join(ROOT_DIR, 'input', '{}.properties'.format(selected_task))
         input_setting_values: dict[str, str] = load_key_value_from_file_properties(setting_file)
         input_setting_values['invoked_class'] = selected_task
-        input_setting_values['use.GUI'] = 'True'
+        input_setting_values['use.GUI'] = 'False'
         input_setting_values['time.unit.factor'] = '1'
 
         self.current_input_setting_values = input_setting_values
         self.current_automated_task_name = selected_task
         self.automated_task: AutomatedTask = clazz(input_setting_values, self.callback_before_run_task)
 
-        for each_setting in input_setting_values:
+        for each_setting, initial_value in input_setting_values.items():
             # Create a container frame for each label and text input pair
-            setting_frame = Frame(self.content_frame)
+            setting_frame = Frame(self.content_frame, background='#FFFFFF')
             setting_frame.pack(anchor="w", pady=5)
 
             # Create the label and text input widgets inside the container frame
-            field_label = Label(master=setting_frame, text=each_setting, width=25)
+            field_label = Label(master=setting_frame, text=each_setting, width=25, background='#CFCFCF',
+                                font=('Maersk Text', 9), fg='#141414')
             field_label.pack(side="left")
 
-            field_input = Text(master=setting_frame, width=80, height=1)
+            path_var = tk.StringVar()
+
+            # Determine if the setting is a folder or file path
+            if each_setting.endswith('.folder'):
+                field_button = tk.Button(master=setting_frame, text="...",
+                                         command=lambda var=path_var: self.choose_folder(var))
+            elif each_setting.endswith('.path'):
+                field_button = tk.Button(master=setting_frame, text="...",
+                                         command=lambda var=path_var: self.choose_file(var))
+            else:
+                field_button = None
+
+            if field_button:
+                field_button.pack(side="right")
+
+            field_input = Text(master=setting_frame, width=89, height=1, font=('Maersk Text', 9), background='#FFFFFF')
             field_input.pack(side="left")
 
             field_input.special_id = each_setting
-            initial_value: str = input_setting_values.get(each_setting)
             field_input.insert("1.0", '' if initial_value is None else initial_value)
+
             field_input.bind("<KeyRelease>", self.update_field_data)
+
+            # Cập nhật giá trị của StringVar vào field_input khi giá trị thay đổi
+            path_var.trace("w", lambda *args, var=path_var, text=field_input: self.update_text_from_var(var, text))
 
         perform_button = tk.Button(self.content_frame,
                                    text='Perform',
-                                   font=('Maersk Headline Bold', 12),
-                                   command=lambda: self.handle_click_on_perform_task_button(self.automated_task))
-        perform_button.pack(padx=1)
+                                   font=('Maersk Text', 11),
+                                   command=lambda: self.handle_click_on_perform_task_button(self.automated_task),
+                                   bg='#42B0D5', fg='#FFFFFF',
+                                   width=9, height=1, activeforeground='#B5E0F5',
+
+                                   )
+        perform_button.pack(padx=5)
 
     def handle_close_app(self):
         self.persist_settings_to_file()
@@ -235,11 +246,30 @@ class GUIApp(tk.Tk, EventHandler):
         return
 
     def handle_terminate_button(self):
-        self.automated_task.quit_session()
+
         self.automated_task = None
         self.progressbar['value'] = 0
         self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",
                                                      text="{} {}%".format("None Task", 0))
+
+    # Function to handle choosing a folder
+    def choose_folder(self, var):
+        folder_selected = filedialog.askdirectory()
+
+        if folder_selected:
+            var.set(folder_selected)
+            self.after(100, self.persist_settings_to_file)
+
+    def choose_file(self, var):
+        file_selected = filedialog.askopenfilename(filetypes=[("All Files", "*.*")])
+
+        if file_selected:
+            var.set(file_selected)
+            self.after(100, self.persist_settings_to_file)
+
+    def update_text_from_var(self, var, text):
+        text.delete("1.0", "end")
+        text.insert("1.0", var.get())
 
 
 if __name__ == "__main__":

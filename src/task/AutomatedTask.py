@@ -116,12 +116,14 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
         if not self._use_gui:
             options.add_argument("--headless")
             options.add_argument('--disable-gpu')
-            options.add_argument("--window-size=%s" % "1920,1080")
+            options.add_argument("--start-maximized")
             options.add_argument("--use-fake-ui-for-media-stream")
             options.add_argument("--enable-javascript")
+            options.add_argument("--disable-cookies")
 
         else:
             options.add_argument("--start-maximized")
+
         username = os.getlogin()
 
         options.add_argument(r'--user-data-dir=C:\Users\{}\AppData\Local\Google\Chrome\User Data'.format(username))
