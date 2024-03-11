@@ -12,6 +12,7 @@ from src.excel_reader_provider.XlwingProvider import XlwingProvider
 from src.task.AutomatedTask import AutomatedTask
 
 
+# noinspection PyPackageRequirements
 class PDFCombine_KH(AutomatedTask):
     tax_to_bill: dict[str, str] = {}
 
@@ -101,10 +102,10 @@ class PDFCombine_KH(AutomatedTask):
 
         """Step 3: Define"""
         # Define folders
+        folder_cheque_request: str = self._settings['folder_cheque_request.folder']
         folder_payslip: str = self._settings['folder_payment_slip.folder']
         folder_wy: str = self._settings['folder_wy.folder']
         folder_inv: str = self._settings['folder_inv.folder']
-        folder_cheque_request: str = self._settings['folder_cheque_request.folder']
 
         # Step 3 continued: Read Excel file
         path_to_excel_contain_pdfs_content = self._settings['excel.path']
@@ -115,7 +116,7 @@ class PDFCombine_KH(AutomatedTask):
 
         """Step 4: Combine PDFs"""
         merger = PdfMerger()
-        for folder in [folder_payslip, folder_wy, folder_inv, folder_cheque_request]:
+        for folder in [folder_cheque_request, folder_payslip, folder_wy, folder_inv]:
             pdf_files = [file for file in os.listdir(folder) if file.startswith(bill)]
             for pdf_file in pdf_files:
                 merger.append(os.path.join(folder, pdf_file))
