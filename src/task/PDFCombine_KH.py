@@ -18,7 +18,6 @@ class PDFCombine_KH(AutomatedTask):
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)
-        self._excel_provider: ExcelReaderProvider = XlwingProvider()
 
     def mandatory_settings(self) -> list[str]:
         mandatory_keys: list[str] = ['excel.path', 'excel.sheet', 'folder_payment_slip.folder', 'folder_wy.folder',
@@ -28,6 +27,15 @@ class PDFCombine_KH(AutomatedTask):
 
     def automate(self):
         logger: Logger = get_current_logger()
+
+        excel_reader: ExcelReaderProvider = XlwingProvider()
+
+        path_to_excel_contain_pdfs_content = self._settings['excel.path']
+        workbook = excel_reader.get_workbook(path=path_to_excel_contain_pdfs_content)
+        logger.info('Loading excel files')
+
+        sheet_name: str = self._settings['excel.sheet']
+        worksheet = excel_reader.get_worksheet(workbook, sheet_name)
 
         bills: list[str] = get_excel_data_in_column_start_at_row(self._settings['excel.path'],
                                                                  self._settings['excel.sheet'],
@@ -71,15 +79,15 @@ class PDFCombine_KH(AutomatedTask):
                 if self.terminated is True:
                     return
 
-            self.combine_pdfs_into_one(bill, excel_row_index)
+            self.combine_pdfs_into_one(bill, worksheet, excel_row_index)
             excel_row_index += 1
 
             self.current_element_count = self.current_element_count + 1
+            excel_reader.save(workbook=workbook)
 
-        workbook_path = self._settings['excel.path']
-        workbook = self._excel_provider.get_workbook(workbook_path)
-        self._excel_provider.close(workbook=workbook)
-        self._excel_provider.quit_session()
+        # Close the Excel workbook
+        excel_reader.close(workbook=workbook)
+        excel_reader.quit_session()
         logger.info('Done input to excel file')
 
     def rename_files_in_folder_wy(self):
@@ -93,51 +101,43 @@ class PDFCombine_KH(AutomatedTask):
                     os.rename(os.path.join(folder_wy, file_name),
                               os.path.join(folder_wy, f"{bill_number}_{wy_number}.pdf"))
 
-    def combine_pdfs_into_one(self, bill, excel_row_index):
+    def combine_pdfs_into_one(self, bill, worksheet, excel_row_index):
         """
         Combine PDFs related to the given bill into one file and update the Excel sheet.
         """
 
         logger: Logger = get_current_logger()
 
-        """Step 3: Define"""
         # Define folders
         folder_cheque_request: str = self._settings['folder_cheque_request.folder']
         folder_payslip: str = self._settings['folder_payment_slip.folder']
         folder_wy: str = self._settings['folder_wy.folder']
         folder_inv: str = self._settings['folder_inv.folder']
 
-        # Step 3 continued: Read Excel file
-        path_to_excel_contain_pdfs_content = self._settings['excel.path']
-        workbook = self._excel_provider.get_workbook(path=path_to_excel_contain_pdfs_content)
-        sheet_name: str = self._settings['excel.sheet']
-        worksheet = self._excel_provider.get_worksheet(workbook, sheet_name)
-        logger.info('Reading Excel')
-
-        """Step 4: Combine PDFs"""
+        # Step 3: Combine PDFs
         merger = PdfMerger()
         for folder in [folder_cheque_request, folder_payslip, folder_wy, folder_inv]:
             pdf_files = [file for file in os.listdir(folder) if file.startswith(bill)]
             for pdf_file in pdf_files:
                 merger.append(os.path.join(folder, pdf_file))
 
-        # Step 4 continued: Save combined PDF
+        # Save combined PDF
         output_folder: str = self._settings['folder_combine']
-        output_file = os.path.join(output_folder, f"{bill}_combined.pdf")
+        output_file = os.path.join(output_folder, f"{bill}.pdf")
 
+        logger.info("Combined {}.pdf".format(bill))
         if os.path.exists(output_file):
             os.remove(output_file)
 
         with open(output_file, 'wb') as output:
             merger.write(output)
 
-        # Step 4 continued: Update Excel sheet
+        # Update Excel sheet
         counts = []
         for folder in [folder_payslip, folder_wy, folder_inv, folder_cheque_request]:
             count = self.find_and_count_pdfs(folder, bill)
             counts.append(count)
-        self.update_excel_sheet(worksheet, excel_row_index, counts)
-        workbook.save()
+        self.update_excel_sheet(worksheet=worksheet, row_index=excel_row_index, counts=counts)
 
     def find_and_count_pdfs(self, folder, prefix):
         """
