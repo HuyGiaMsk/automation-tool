@@ -85,6 +85,8 @@ class PDFCombine_KH(AutomatedTask):
             self.current_element_count = self.current_element_count + 1
             excel_reader.save(workbook=workbook)
 
+        self.combine_pdfs_combined()
+
         # Close the Excel workbook
         excel_reader.close(workbook=workbook)
         excel_reader.quit_session()
@@ -138,6 +140,45 @@ class PDFCombine_KH(AutomatedTask):
             count = self.find_and_count_pdfs(folder, bill)
             counts.append(count)
         self.update_excel_sheet(worksheet=worksheet, row_index=excel_row_index, counts=counts)
+
+    def combine_pdfs_combined(self):
+        """
+        Combine PDFs combined before in each folder into one file
+        """
+        logger: Logger = get_current_logger()
+
+        folder_to_combine: str = self._settings['folder_combine']
+        merger = PdfMerger()
+
+        # Iterate through the PDF files in the folder
+        for file in os.listdir(folder_to_combine):
+            if file.lower().endswith('.pdf'):
+                pdf_file_path = os.path.join(folder_to_combine, file)
+                merger.append(pdf_file_path)
+
+        # Save combined PDF
+        output_folder: str = self._settings['folder_combine']
+        output_file = os.path.join(output_folder, "Combined.pdf")
+
+        # Remove existing output file if exists
+        if os.path.exists(output_file):
+            os.remove(output_file)
+
+        with open(output_file, 'wb') as output:
+            merger.write(output)
+
+        merger.close()
+        
+        # Delete all PDF files except the final combined one
+        for file in os.listdir(folder_to_combine):
+            if file.lower().endswith('.pdf') and file != "Combined.pdf":
+                file_path = os.path.join(folder_to_combine, file)
+                try:
+                    os.remove(file_path)
+                except Exception as e:
+                    logger.error(f"Error deleting file {file_path}: {e}")
+
+        logger.info('Removed old files')
 
     def find_and_count_pdfs(self, folder, prefix):
         """
