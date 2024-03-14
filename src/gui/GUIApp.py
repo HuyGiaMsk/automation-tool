@@ -36,12 +36,16 @@ class GUIApp(tk.Tk, EventHandler):
         self.container_frame = tk.Frame(self, bg="#FFFFFF")
         self.container_frame.pack()
 
-        self.myLabel = Label(self.container_frame, text='Automation Tool', font=('Maersk Text Bold', 18),
-                             bg="#FFFFFF", fg="#42B0D5", background='#FFFFFF', width=1080)
+        image_file = os.path.join(ROOT_DIR, "resource/img/logo2.png")
+        self.logo_image = tk.PhotoImage(file=image_file)
+
+        self.myLabel = Label(self.container_frame,
+                             bg="#F5F5F7", background='#FFFFFF', width=980, image=self.logo_image,
+                             compound=tk.CENTER)
         self.myLabel.pack()
 
         self.automated_tasks_dropdown = Combobox(master=self.container_frame, state="readonly", width=110, height=20,
-                                                 background='#EDEDED')
+                                                 background='#FB3D52', foreground='#FFFFFF')
         self.automated_tasks_dropdown.pack(padx=10, pady=10)
 
         self.content_frame = Frame(self.container_frame, width=1080, height=600, bd=1, relief=tk.SOLID, bg='#FFFFFF',
@@ -57,8 +61,8 @@ class GUIApp(tk.Tk, EventHandler):
         self.save_button = tk.Button(self.container_frame,
                                      text='Save',
                                      command=self.save_input,
-                                     bg='#40AB35', fg='#FFFFFF', font=('Maersk Text', 11),
-                                     width=9, height=1, activeforeground='#40AB35',
+                                     bg='#B678F2', fg='#FFFFFF', font=('Maersk Headline', 11),
+                                     width=9, height=1, activeforeground='#FB3D52',
                                      )
         self.save_button.pack()
 
@@ -66,16 +70,16 @@ class GUIApp(tk.Tk, EventHandler):
         self.pause_button = tk.Button(self.container_frame,
                                       text='Pause',
                                       command=lambda: self.handle_pause_button(),
-                                      bg='#FFA201', fg='#FFFFFF', font=('Maersk Text', 11),
-                                      width=9, height=1, activeforeground='#FFA201'
+                                      bg='#2FACE8', fg='#FFFFFF', font=('Maersk Headline', 11),
+                                      width=9, height=1, activeforeground='#B678F2'
                                       )
         self.pause_button.pack()
 
         self.terminate_button = tk.Button(self.container_frame,
                                           text='Reset',
                                           command=lambda: self.handle_terminate_button(),
-                                          bg='#FA6A55', fg='#FFFFFF', font=('Maersk Text', 11),
-                                          width=9, height=1, activeforeground='#FA6A55'
+                                          bg='#E34498', fg='#FFFFFF', font=('Maersk Headline', 11),
+                                          width=9, height=1, activeforeground='#03D0C4'
                                           )
         self.terminate_button.pack()
 
@@ -88,7 +92,7 @@ class GUIApp(tk.Tk, EventHandler):
                                                                    {"sticky": ""})],
                                                      'sticky': 'nswe'})])
         self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar", text="None 0 %",
-                                                     background='#B5E0F5', troughcolor='#42B0D5')
+                                                     background='#FB3D52', troughcolor='#FB3D52')
         self.progressbar = ttk.Progressbar(self.container_frame, orient=HORIZONTAL,
                                            length=800, mode="determinate", maximum=100
                                            , style="Text.Horizontal.TProgressbar")
@@ -170,7 +174,7 @@ class GUIApp(tk.Tk, EventHandler):
             setting_frame.pack(anchor="w", pady=5)
 
             # Create the label and text input widgets inside the container frame
-            field_label = Label(master=setting_frame, text=each_setting, width=25, background='#CFCFCF',
+            field_label = Label(master=setting_frame, text=each_setting, width=20,
                                 font=('Maersk Text', 9), fg='#141414')
             field_label.pack(side="left")
 
@@ -189,7 +193,7 @@ class GUIApp(tk.Tk, EventHandler):
             if field_button:
                 field_button.pack(side="right")
 
-            field_input = Text(master=setting_frame, width=89, height=1, font=('Maersk Text', 9), background='#FFFFFF')
+            field_input = Text(master=setting_frame, width=84, height=1, font=('Maersk Text', 9), background='#FFFFFF')
             field_input.pack(side="left")
 
             field_input.special_id = each_setting
@@ -204,8 +208,8 @@ class GUIApp(tk.Tk, EventHandler):
                                    text='Perform',
                                    font=('Maersk Text', 11),
                                    command=lambda: self.handle_click_on_perform_task_button(self.automated_task),
-                                   bg='#42B0D5', fg='#FFFFFF',
-                                   width=9, height=1, activeforeground='#00243D',
+                                   bg='#FB3D52', fg='#FFFFFF',
+                                   width=9, height=1, activeforeground='#FB3D52',
 
                                    )
         perform_button.pack(padx=5)
