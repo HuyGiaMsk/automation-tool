@@ -325,7 +325,7 @@ class GUIApp(tk.Tk, EventHandler):
             for field_name, field_value in saved_data.items():
                 file.write(f"{field_name} = {field_value}\n")
 
-        self.logger.info('Saved your input at ROOT_DIR\input\{}'.format(file_name))
+        self.logger.info('Saved your input at {}'.format(file_path))
 
 
 if __name__ == "__main__":
