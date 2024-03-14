@@ -42,17 +42,25 @@ class GUIApp(tk.Tk, EventHandler):
 
         self.automated_tasks_dropdown = Combobox(master=self.container_frame, state="readonly", width=110, height=20,
                                                  background='#EDEDED')
-        self.automated_tasks_dropdown.pack(padx=20, pady=20)
+        self.automated_tasks_dropdown.pack(padx=10, pady=10)
 
         self.content_frame = Frame(self.container_frame, width=1080, height=600, bd=1, relief=tk.SOLID, bg='#FFFFFF',
                                    borderwidth=0)
-        self.content_frame.pack(padx=20, pady=20)
+        self.content_frame.pack(padx=10, pady=10)
 
         self.automated_tasks_dropdown.bind("<<ComboboxSelected>>", self.handle_task_dropdown_change)
         self.populate_task_dropdown()
 
         self.current_input_setting_values = {}
         self.current_automated_task_name = None
+
+        self.save_button = tk.Button(self.container_frame,
+                                     text='Save',
+                                     command=self.save_input,
+                                     bg='#40AB35', fg='#FFFFFF', font=('Maersk Text', 11),
+                                     width=9, height=1, activeforeground='#40AB35',
+                                     )
+        self.save_button.pack()
 
         self.is_task_currently_pause: bool = False
         self.pause_button = tk.Button(self.container_frame,
@@ -90,6 +98,11 @@ class GUIApp(tk.Tk, EventHandler):
                                      background='#545454', font=('Maersk Text', 10), foreground='#FFFFFF')
         self.textbox.pack()
         setup_textbox_logger(self.textbox)
+
+    def create_control_buttons(self):
+        self.pause_button.pack(side=tk.LEFT, padx=5)
+        self.terminate_button.pack(side=tk.LEFT, padx=5)
+        self.save_button.pack(side=tk.LEFT, padx=5)
 
     def populate_task_dropdown(self):
         input_dir: str = os.path.join(ROOT_DIR, "input")
@@ -144,7 +157,7 @@ class GUIApp(tk.Tk, EventHandler):
         setting_file = os.path.join(ROOT_DIR, 'input', '{}.properties'.format(selected_task))
         input_setting_values: dict[str, str] = load_key_value_from_file_properties(setting_file)
         input_setting_values['invoked_class'] = selected_task
-        input_setting_values['use.GUI'] = 'False'
+        # input_setting_values['use.GUI'] = 'False'
         input_setting_values['time.unit.factor'] = '1'
 
         self.current_input_setting_values = input_setting_values
@@ -192,7 +205,7 @@ class GUIApp(tk.Tk, EventHandler):
                                    font=('Maersk Text', 11),
                                    command=lambda: self.handle_click_on_perform_task_button(self.automated_task),
                                    bg='#42B0D5', fg='#FFFFFF',
-                                   width=9, height=1, activeforeground='#B5E0F5',
+                                   width=9, height=1, activeforeground='#00243D',
 
                                    )
         perform_button.pack(padx=5)
@@ -219,6 +232,7 @@ class GUIApp(tk.Tk, EventHandler):
         self.persist_settings_to_file()
         selected_task = self.automated_tasks_dropdown.get()
         self.update_frame_content(selected_task)
+        self.update_save_button_state()
 
     def handle_click_on_perform_task_button(self, task: AutomatedTask):
         if task is not None and task.is_alive():
@@ -270,6 +284,48 @@ class GUIApp(tk.Tk, EventHandler):
     def update_text_from_var(self, var, text):
         text.delete("1.0", "end")
         text.insert("1.0", var.get())
+
+    def check_all_fields_filled(self):
+        for child in self.content_frame.winfo_children():
+            if isinstance(child, Frame):
+                for widget in child.winfo_children():
+                    if isinstance(widget, Text):
+                        if not widget.get("1.0", "end-1c").strip():  # Check if the field is empty
+                            return False
+        return True
+
+    def update_save_button_state(self):
+        if self.check_all_fields_filled():
+            self.save_button.config(state=tk.NORMAL)
+        else:
+            self.save_button.config(state=tk.DISABLED)
+
+    def save_input(self):
+        """
+        Create a dictionary to store the values of each field
+        """
+
+        saved_data = {}
+
+        # Iterate over the fields to retrieve their values
+        for child in self.content_frame.winfo_children():
+            if isinstance(child, Frame):
+                for widget in child.winfo_children():
+                    if isinstance(widget, Text):
+                        field_name = widget.special_id
+                        field_value = widget.get("1.0", "end-1c").strip()
+                        saved_data[field_name] = field_value
+
+        # Determine the file name based on the selected task
+        file_name = f"{self.current_automated_task_name}.properties"
+        file_path = os.path.join(ROOT_DIR, "input", file_name)
+
+        # Save the data to the file
+        with open(file_path, 'w') as file:
+            for field_name, field_value in saved_data.items():
+                file.write(f"{field_name} = {field_value}\n")
+
+        self.logger.info('Saved your input at ROOT_DIR\input\{}'.format(file_name))
 
 
 if __name__ == "__main__":

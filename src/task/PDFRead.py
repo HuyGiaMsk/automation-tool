@@ -64,3 +64,4 @@ class PDFRead(AutomatedTask):
 
         excel_reader.close(workbook=workbook)
         excel_reader.quit_session()
+        logger.info('Closed excel file - Done')
