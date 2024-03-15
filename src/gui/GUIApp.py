@@ -40,7 +40,7 @@ class GUIApp(tk.Tk, EventHandler):
         self.logo_image = tk.PhotoImage(file=image_file)
 
         self.myLabel = Label(self.container_frame,
-                             bg="#F5F5F7", background='#FFFFFF', width=980, image=self.logo_image,
+                             bg="#FFFFFF", width=980, image=self.logo_image,
                              compound=tk.CENTER)
         self.myLabel.pack()
 
@@ -98,7 +98,7 @@ class GUIApp(tk.Tk, EventHandler):
                                            , style="Text.Horizontal.TProgressbar")
         self.progressbar.pack(pady=10)
 
-        self.textbox: Text = tk.Text(self.container_frame, wrap="word", state=tk.DISABLED, width=100, height=100,
+        self.textbox: Text = tk.Text(self.container_frame, wrap="word", state=tk.DISABLED, width=100, height=15,
                                      background='#545454', font=('Maersk Text', 10), foreground='#FFFFFF')
         self.textbox.pack()
         setup_textbox_logger(self.textbox)
@@ -169,6 +169,7 @@ class GUIApp(tk.Tk, EventHandler):
         self.automated_task: AutomatedTask = clazz(input_setting_values, self.callback_before_run_task)
 
         for each_setting, initial_value in input_setting_values.items():
+
             # Create a container frame for each label and text input pair
             setting_frame = Frame(self.content_frame, background='#FFFFFF')
             setting_frame.pack(anchor="w", pady=5)
@@ -187,13 +188,19 @@ class GUIApp(tk.Tk, EventHandler):
             elif each_setting.endswith('.path'):
                 field_button = tk.Button(master=setting_frame, text="...",
                                          command=lambda var=path_var: self.choose_file(var))
+
             else:
                 field_button = None
+
+            if each_setting == 'use.GUI':
+                # Create a Combobox for the use.GUI setting
+                field_input = ttk.Combobox(master=setting_frame, width=20, font=('Maersk Text', 9), state="readonly",
+                                           values=["True", "False"])
 
             if field_button:
                 field_button.pack(side="right")
 
-            field_input = Text(master=setting_frame, width=84, height=1, font=('Maersk Text', 9), background='#FFFFFF')
+            field_input = Text(master=setting_frame, width=80, height=1, font=('Maersk Text', 9), background='#FFFFFF')
             field_input.pack(side="left")
 
             field_input.special_id = each_setting

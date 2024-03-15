@@ -168,7 +168,7 @@ class PDFCombine_KH(AutomatedTask):
             merger.write(output)
 
         merger.close()
-        
+
         # Delete all PDF files except the final combined one
         for file in os.listdir(folder_to_combine):
             if file.lower().endswith('.pdf') and file != "Combined.pdf":

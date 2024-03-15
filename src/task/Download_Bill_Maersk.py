@@ -128,7 +128,7 @@ class Download_Bill_Maersk(AutomatedTask):
         self._click_and_wait_navigate_to_other_page(by=By.ID, value='login-submit-button')
         logger.info('clicked button - need your access')
 
-        time.sleep(1)
+        time.sleep(2)
         self._click_when_element_present(by=By.CSS_SELECTOR, value='div.coi-banner__page-footer button:nth-child(3)')
 
         # try to input customer data
