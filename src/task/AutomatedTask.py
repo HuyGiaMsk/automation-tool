@@ -10,9 +10,9 @@ from typing import Callable
 from selenium import webdriver
 from selenium.common import TimeoutException
 from selenium.webdriver.chrome.webdriver import WebDriver
+from selenium.webdriver.remote.webdriver import WebDriver as AnyDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
-from selenium.webdriver.support.expected_conditions import AnyDriver
 from selenium.webdriver.support.wait import WebDriverWait
 
 from src.common.Percentage import Percentage
@@ -124,9 +124,9 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
         else:
             options.add_argument("--start-maximized")
 
-        username = os.getlogin()
-
-        options.add_argument(r'--user-data-dir=C:\Users\{}\AppData\Local\Google\Chrome\User Data'.format(username))
+        # username = os.getlogin()
+        #
+        # options.add_argument(r'--user-data-dir=C:\Users\{}\AppData\Local\Google\Chrome\User Data'.format(username))
         options.add_argument('--disable-extensions')
         options.add_argument('--disable-infobars')
         options.add_argument('--disable-notifications')
