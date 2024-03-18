@@ -36,7 +36,7 @@ class GUIApp(tk.Tk, EventHandler):
         self.container_frame = tk.Frame(self, bg="#FFFFFF")
         self.container_frame.pack()
 
-        image_file = os.path.join(ROOT_DIR, "resource/img/logo2.png")
+        image_file = os.path.join(ROOT_DIR, "resource/img/logo3.png")
         self.logo_image = tk.PhotoImage(file=image_file)
 
         self.myLabel = Label(self.container_frame,
@@ -71,7 +71,7 @@ class GUIApp(tk.Tk, EventHandler):
                                       text='Pause',
                                       command=lambda: self.handle_pause_button(),
                                       bg='#2FACE8', fg='#FFFFFF', font=('Maersk Headline', 11),
-                                      width=9, height=1, activeforeground='#B678F2'
+                                      width=9, height=1, activeforeground='#2FACE8'
                                       )
         self.pause_button.pack()
 
@@ -79,7 +79,7 @@ class GUIApp(tk.Tk, EventHandler):
                                           text='Reset',
                                           command=lambda: self.handle_terminate_button(),
                                           bg='#E34498', fg='#FFFFFF', font=('Maersk Headline', 11),
-                                          width=9, height=1, activeforeground='#03D0C4'
+                                          width=9, height=1, activeforeground='#E34498'
                                           )
         self.terminate_button.pack()
 
@@ -92,14 +92,17 @@ class GUIApp(tk.Tk, EventHandler):
                                                                    {"sticky": ""})],
                                                      'sticky': 'nswe'})])
         self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar", text="None 0 %",
-                                                     background='#FB3D52', troughcolor='#FB3D52')
+                                                     background='#FB3D52', troughcolor='#FB3D52',
+                                                     troughrelief='flat', bordercolor='#FB3D52',
+                                                     lightcolor='#FB3D52', darkcolor='#FB3D52'
+                                                     )
         self.progressbar = ttk.Progressbar(self.container_frame, orient=HORIZONTAL,
                                            length=800, mode="determinate", maximum=100
                                            , style="Text.Horizontal.TProgressbar")
         self.progressbar.pack(pady=10)
 
         self.textbox: Text = tk.Text(self.container_frame, wrap="word", state=tk.DISABLED, width=100, height=15,
-                                     background='#545454', font=('Maersk Text', 10), foreground='#FFFFFF')
+                                     background='#878787', font=('Maersk Text', 10), foreground='#FFFFFF')
         self.textbox.pack()
         setup_textbox_logger(self.textbox)
 
@@ -161,7 +164,6 @@ class GUIApp(tk.Tk, EventHandler):
         setting_file = os.path.join(ROOT_DIR, 'input', '{}.properties'.format(selected_task))
         input_setting_values: dict[str, str] = load_key_value_from_file_properties(setting_file)
         input_setting_values['invoked_class'] = selected_task
-        # input_setting_values['use.GUI'] = 'False'
         input_setting_values['time.unit.factor'] = '1'
 
         self.current_input_setting_values = input_setting_values
@@ -169,14 +171,16 @@ class GUIApp(tk.Tk, EventHandler):
         self.automated_task: AutomatedTask = clazz(input_setting_values, self.callback_before_run_task)
 
         for each_setting, initial_value in input_setting_values.items():
+            if each_setting == 'use.GUI':
+                continue
 
             # Create a container frame for each label and text input pair
             setting_frame = Frame(self.content_frame, background='#FFFFFF')
             setting_frame.pack(anchor="w", pady=5)
 
             # Create the label and text input widgets inside the container frame
-            field_label = Label(master=setting_frame, text=each_setting, width=20,
-                                font=('Maersk Text', 9), fg='#141414')
+            field_label = Label(master=setting_frame, text=each_setting, width=25,
+                                font=('Maersk Text', 9), fg='#FFFFFF', bg='#FB3D52', borderwidth=0)
             field_label.pack(side="left")
 
             path_var = tk.StringVar()
@@ -184,23 +188,21 @@ class GUIApp(tk.Tk, EventHandler):
             # Determine if the setting is a folder or file path
             if each_setting.endswith('.folder'):
                 field_button = tk.Button(master=setting_frame, text="...",
-                                         command=lambda var=path_var: self.choose_folder(var))
+                                         command=lambda var=path_var: self.choose_folder(var),
+                                         height=1, borderwidth=0, bg='#FB3D52', fg='#FFFFFF')
             elif each_setting.endswith('.path'):
                 field_button = tk.Button(master=setting_frame, text="...",
-                                         command=lambda var=path_var: self.choose_file(var))
+                                         command=lambda var=path_var: self.choose_file(var),
+                                         height=1, borderwidth=0, bg='#FB3D52', fg='#FFFFFF')
 
             else:
                 field_button = None
 
-            if each_setting == 'use.GUI':
-                # Create a Combobox for the use.GUI setting
-                field_input = ttk.Combobox(master=setting_frame, width=20, font=('Maersk Text', 9), state="readonly",
-                                           values=["True", "False"])
-
             if field_button:
                 field_button.pack(side="right")
 
-            field_input = Text(master=setting_frame, width=80, height=1, font=('Maersk Text', 9), background='#FFFFFF')
+            field_input = Text(master=setting_frame, width=80, height=1, font=('Maersk Text', 9), background='#EDEDED',
+                               fg='#000000', borderwidth=0)
             field_input.pack(side="left")
 
             field_input.special_id = each_setting
@@ -211,15 +213,30 @@ class GUIApp(tk.Tk, EventHandler):
             # Cập nhật giá trị của StringVar vào field_input khi giá trị thay đổi
             path_var.trace("w", lambda *args, var=path_var, text=field_input: self.update_text_from_var(var, text))
 
+        # Handle 'use.GUI' setting separately
+        use_gui_var = tk.BooleanVar()
+        use_gui_var.set(True if input_setting_values.get('use.GUI') == 'True' else False)
+        use_gui_checkbox = tk.Checkbutton(self.content_frame, text="Use GUI", variable=use_gui_var,
+                                          font=('Maersk Text', 9),
+                                          background='#2FACE8', fg='#FFFFFF', width=21, height=1,
+                                          )
+        use_gui_checkbox.pack(anchor="w", pady=5)
+
+        # Callback to update the setting value when the checkbox state changes
+        use_gui_var.trace_add("write", lambda *args, var=use_gui_var: self.update_use_gui_setting(var))
+
         perform_button = tk.Button(self.content_frame,
                                    text='Perform',
                                    font=('Maersk Text', 11),
                                    command=lambda: self.handle_click_on_perform_task_button(self.automated_task),
                                    bg='#FB3D52', fg='#FFFFFF',
-                                   width=9, height=1, activeforeground='#FB3D52',
-
-                                   )
+                                   width=9, height=1, activeforeground='#FB3D52')
         perform_button.pack(padx=5)
+
+    def update_use_gui_setting(self, var):
+        # Update the setting value based on the checkbox state
+        self.current_input_setting_values['use.GUI'] = str(var.get())
+        self.logger.debug("Change data on field use.GUI to {}".format(var.get()))
 
     def handle_close_app(self):
         self.persist_settings_to_file()

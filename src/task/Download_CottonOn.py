@@ -23,7 +23,7 @@ class BookingToInfoIndex(Enum):
     BECODE_INDEX_IN_TUPLE = 1
 
 
-class AutomatedTicketCottonOn(AutomatedTask):
+class Download_CottonOn(AutomatedTask):
     booking_to_info = {}
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
@@ -181,7 +181,7 @@ class AutomatedTicketCottonOn(AutomatedTask):
         file_name_pkl: str = "Packing"
 
         booking_id: str = os.path.split(extracted_dir)[1]
-        so_number = AutomatedTicketCottonOn.booking_to_info[booking_id][BookingToInfoIndex.SO_INDEX_IN_TUPLE.value]
+        so_number = Download_CottonOn.booking_to_info[booking_id][BookingToInfoIndex.SO_INDEX_IN_TUPLE.value]
         with ResourceLock(file_path=extracted_dir):
 
             for file_name in os.listdir(extracted_dir):

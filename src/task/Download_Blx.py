@@ -15,7 +15,7 @@ from src.common.ThreadLocalLogger import get_current_logger
 from src.task.AutomatedTask import AutomatedTask
 
 
-class Blx(AutomatedTask):
+class Download_Blx(AutomatedTask):
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)

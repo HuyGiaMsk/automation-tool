@@ -59,7 +59,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
         else:
             self._timingFactor = float(self._settings['time.unit.factor'])
 
-        self._use_gui = False if self._settings['use.GUI'] is None else 'True'.lower() == str(
+        self._use_gui = False if self._settings['use.GUI'] is None or 'False' else 'True'.lower() == str(
             self._settings['use.GUI']).lower()
 
         if not self._use_gui:
