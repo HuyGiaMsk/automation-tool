@@ -1,13 +1,14 @@
 import time
 from logging import Logger
+from typing import Callable
 
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
-from src.task.AutomatedTask import AutomatedTask
 from src.common.FileUtil import get_excel_data_in_column_start_at_row
 from src.common.ThreadLocalLogger import get_current_logger
+from src.task.AutomatedTask import AutomatedTask
 
 
 class Release(AutomatedTask):
@@ -17,13 +18,13 @@ class Release(AutomatedTask):
     def get_current_percent(self) -> float:
         pass
 
-    def __init__(self, settings: dict[str, str]):
-        super().__init__(settings)
+    def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
+        super().__init__(settings, callback_before_run_task)
         self._document_folder = self._download_folder
 
     def mandatory_settings(self) -> list[str]:
         mandatory_keys: list[str] = ['username', 'password', 'excel.path', 'excel.sheet', 'download.folder',
-                                    'excel.column.so', 'excel.column.becode']
+                                     'excel.column.so', 'excel.column.becode']
         return mandatory_keys
 
     def automate(self):
@@ -93,6 +94,18 @@ class Release(AutomatedTask):
             index += 1
 
         for becode, so_number in becode_to_sonumber.items():
+
+            if self.terminated is True:
+                return
+
+            with self.pause_condition:
+
+                while self.paused:
+                    self.pause_condition.wait()
+
+                if self.terminated is True:
+                    return
+
             self._release(becode, so_number)
 
         logger.info("Complete Upload")
@@ -177,4 +190,3 @@ class Release(AutomatedTask):
 
         self._click_when_element_present(by=By.PARTIAL_LINK_TEXT, value='SEARCH')
         logger.info('Back to Homepage')
-

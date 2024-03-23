@@ -26,6 +26,7 @@ class Download_Bill_Maersk(AutomatedTask):
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)
+
         self._excel_provider = XlwingProvider()
         self.bill_type_to_download_code: dict[str, str] = {
             'certifiedTrueCopy': 'CertifiedTrueCopy',
@@ -78,6 +79,18 @@ class Download_Bill_Maersk(AutomatedTask):
 
         excel_row_index: int = get_row_index_from_excel_cell_format(self._settings['excel.column.bill'])
         for bill in bills:
+
+            if self.terminated is True:
+                return
+
+            with self.pause_condition:
+
+                while self.paused:
+                    self.pause_condition.wait()
+
+                if self.terminated is True:
+                    return
+
             logger.info("Processing booking : " + bill)
             self.__navigate_and_download(bill, excel_row_index)
             excel_row_index += 1

@@ -1,26 +1,28 @@
 import os
 import time
 from logging import Logger
+from typing import Callable
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 
-from src.task.AutomatedTask import AutomatedTask
 from src.common.FileUtil import get_excel_data_in_column_start_at_row
-from src.common.ThreadLocalLogger import get_current_logger
 from src.common.ResourceLock import ResourceLock
+from src.common.ThreadLocalLogger import get_current_logger
+from src.task.AutomatedTask import AutomatedTask
 
 
 class Upload_bill_fcr_only(AutomatedTask):
 
-    def __init__(self, settings: dict[str, str]):
-        super().__init__(settings)
+    def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
+        super().__init__(settings, callback_before_run_task)
         self._document_folder = self._download_folder
 
     def mandatory_settings(self) -> list[str]:
         mandatory_keys: list[str] = ['username', 'password', 'download.folder', 'excel.path', 'excel.sheet',
-                                    'excel.column.so', 'excel.column.becode']
+                                     'excel.column.so', 'excel.column.becode']
         return mandatory_keys
 
     def automate(self):
@@ -90,6 +92,18 @@ class Upload_bill_fcr_only(AutomatedTask):
             index += 1
 
         for so_number, becode in becode_to_sonumber.items():
+
+            if self.terminated is True:
+                return
+
+            with self.pause_condition:
+
+                while self.paused:
+                    self.pause_condition.wait()
+
+                if self.terminated is True:
+                    return
+
             self._upload(so_number, becode)
 
         logger.info("Complete Upload")
@@ -187,30 +201,36 @@ class Upload_bill_fcr_only(AutomatedTask):
                 # House Bill upload
                 if file_name_hbl in file_name:
                     suitable_option_bill: WebElement = self.find_matched_option(by=By.CSS_SELECTOR,
-                                                                                list_options_selector='#row{} td:nth-child(1) option'.format(row_index),
+                                                                                list_options_selector='#row{} td:nth-child(1) option'.format(
+                                                                                    row_index),
                                                                                 search_keyword='House Bill of Lading')
                     suitable_option_bill.click()
-                    self._type_when_element_present(by=By.CSS_SELECTOR, value='#row{} input[type=file]'.format(row_index),
+                    self._type_when_element_present(by=By.CSS_SELECTOR,
+                                                    value='#row{} input[type=file]'.format(row_index),
                                                     content=file_path)
                     row_index = row_index + 1
 
                 # Carrier Bill upload
                 if file_name_cbl in file_name:
                     suitable_option_bill: WebElement = self.find_matched_option(by=By.CSS_SELECTOR,
-                                                                                list_options_selector='#row{} td:nth-child(1) option'.format(row_index),
+                                                                                list_options_selector='#row{} td:nth-child(1) option'.format(
+                                                                                    row_index),
                                                                                 search_keyword='Bill of Lading')
                     suitable_option_bill.click()
-                    self._type_when_element_present(by=By.CSS_SELECTOR, value='#row{} input[type=file]'.format(row_index),
+                    self._type_when_element_present(by=By.CSS_SELECTOR,
+                                                    value='#row{} input[type=file]'.format(row_index),
                                                     content=file_path)
                     row_index = row_index + 1
 
                 # FCR upload
                 if file_name_fcr in file_name:
                     suitable_option_fcr: WebElement = self.find_matched_option(by=By.CSS_SELECTOR,
-                                                                               list_options_selector='#row{} td:nth-child(1) option'.format(row_index),
+                                                                               list_options_selector='#row{} td:nth-child(1) option'.format(
+                                                                                   row_index),
                                                                                search_keyword='Forwarders Cargo Receipt')
                     suitable_option_fcr.click()
-                    self._type_when_element_present(by=By.CSS_SELECTOR, value='#row{} input[type=file]'.format(row_index),
+                    self._type_when_element_present(by=By.CSS_SELECTOR,
+                                                    value='#row{} input[type=file]'.format(row_index),
                                                     content=file_path)
                     row_index = row_index + 1
 

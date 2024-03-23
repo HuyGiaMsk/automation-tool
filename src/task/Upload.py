@@ -1,6 +1,7 @@
 import os
 import time
 from logging import Logger
+from typing import Callable
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -20,8 +21,8 @@ class Upload(AutomatedTask):
     def get_current_percent(self) -> float:
         pass
 
-    def __init__(self, settings: dict[str, str]):
-        super().__init__(settings)
+    def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
+        super().__init__(settings, callback_before_run_task)
         self._document_folder = self._download_folder
 
     def mandatory_settings(self) -> list[str]:
@@ -96,6 +97,18 @@ class Upload(AutomatedTask):
             index += 1
 
         for so_number, becode in becode_to_sonumber.items():
+
+            if self.terminated is True:
+                return
+
+            with self.pause_condition:
+
+                while self.paused:
+                    self.pause_condition.wait()
+
+                if self.terminated is True:
+                    return
+
             self._upload(so_number, becode)
 
         logger.info("Complete Upload")

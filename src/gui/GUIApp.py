@@ -106,6 +106,9 @@ class GUIApp(tk.Tk, EventHandler):
         self.textbox.pack()
         setup_textbox_logger(self.textbox)
 
+        self.use_gui_var = tk.BooleanVar()
+        self.use_gui_var.set(True)
+
     def create_control_buttons(self):
         self.pause_button.pack(side=tk.LEFT, padx=5)
         self.terminate_button.pack(side=tk.LEFT, padx=5)
@@ -131,7 +134,6 @@ class GUIApp(tk.Tk, EventHandler):
             return
 
         file_path: str = os.path.join(ROOT_DIR, "input", "{}.properties".format(self.current_automated_task_name))
-        self.logger.info("Attempt to persist data to {}".format(file_path))
 
         with ResourceLock(file_path=file_path):
 
@@ -149,6 +151,10 @@ class GUIApp(tk.Tk, EventHandler):
         field_name = text_widget.special_id
         self.current_input_setting_values[field_name] = new_value
         self.logger.debug("Change data on field {} to {}".format(field_name, new_value))
+
+    def update_use_gui_setting(self, event=None):
+        self.current_input_setting_values['use.GUI'] = str(self.use_gui_var.get())
+        self.persist_settings_to_file()
 
     def update_frame_content(self, selected_task):
         # Clear the content frame
@@ -194,7 +200,6 @@ class GUIApp(tk.Tk, EventHandler):
                 field_button = tk.Button(master=setting_frame, text="...",
                                          command=lambda var=path_var: self.choose_file(var),
                                          height=1, borderwidth=0, bg='#FB3D52', fg='#FFFFFF')
-
             else:
                 field_button = None
 
@@ -213,17 +218,16 @@ class GUIApp(tk.Tk, EventHandler):
             # Cập nhật giá trị của StringVar vào field_input khi giá trị thay đổi
             path_var.trace("w", lambda *args, var=path_var, text=field_input: self.update_text_from_var(var, text))
 
-        # Handle 'use.GUI' setting separately
-        use_gui_var = tk.BooleanVar()
-        use_gui_var.set(True if input_setting_values.get('use.GUI') == 'True' else False)
-        use_gui_checkbox = tk.Checkbutton(self.content_frame, text="Use GUI", variable=use_gui_var,
-                                          font=('Maersk Text', 9),
-                                          background='#2FACE8', fg='#FFFFFF', width=21, height=1,
-                                          )
-        use_gui_checkbox.pack(anchor="w", pady=5)
+        self.use_gui_var.set(True if input_setting_values.get('use.GUI') == 'True' else 'False')
 
-        # Callback to update the setting value when the checkbox state changes
-        use_gui_var.trace_add("write", lambda *args, var=use_gui_var: self.update_use_gui_setting(var))
+        use_gui_checkbox = tk.Checkbutton(self.content_frame, text="Use GUI", variable=self.use_gui_var,
+                                          font=('Maersk Text', 9),
+                                          background='#2FACE8', width=21, height=1,
+                                          command=self.update_use_gui_setting)
+
+        use_gui_checkbox.select() if self.use_gui_var.get() else use_gui_checkbox.deselect()
+        use_gui_checkbox.bind("<Button-1>", self.update_use_gui_setting)
+        use_gui_checkbox.pack(anchor="w", pady=5)
 
         perform_button = tk.Button(self.content_frame,
                                    text='Perform',
@@ -232,11 +236,6 @@ class GUIApp(tk.Tk, EventHandler):
                                    bg='#FB3D52', fg='#FFFFFF',
                                    width=9, height=1, activeforeground='#FB3D52')
         perform_button.pack(padx=5)
-
-    def update_use_gui_setting(self, var):
-        # Update the setting value based on the checkbox state
-        self.current_input_setting_values['use.GUI'] = str(var.get())
-        self.logger.debug("Change data on field use.GUI to {}".format(var.get()))
 
     def handle_close_app(self):
         self.persist_settings_to_file()

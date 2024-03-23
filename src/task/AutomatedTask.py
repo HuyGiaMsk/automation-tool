@@ -38,6 +38,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
                  callback_before_run_task: Callable[[], None]):
 
         super().__init__()
+
         logger: Logger = get_current_logger()
         self._settings: dict[str, str] = settings
         self.callback_before_run_task = callback_before_run_task
@@ -59,7 +60,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
         else:
             self._timingFactor = float(self._settings['time.unit.factor'])
 
-        self._use_gui = False if self._settings['use.GUI'] is None or 'False' else 'True'.lower() == str(
+        self._use_gui = False if self._settings['use.GUI'] is 'False' else 'True'.lower() == str(
             self._settings['use.GUI']).lower()
 
         if not self._use_gui:

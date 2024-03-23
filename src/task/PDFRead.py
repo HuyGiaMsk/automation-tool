@@ -39,6 +39,17 @@ class PDFRead(AutomatedTask):
 
         for root, dirs, files in os.walk(path_to_docs):
 
+            if self.terminated is True:
+                return
+
+            with self.pause_condition:
+
+                while self.paused:
+                    self.pause_condition.wait()
+
+                if self.terminated is True:
+                    return
+
             for current_pdf in files:
                 if not current_pdf.lower().endswith(".pdf"):
                     continue

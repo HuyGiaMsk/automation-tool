@@ -81,6 +81,18 @@ class Download_CottonOn(AutomatedTask):
 
         last_booking: str = ''
         for booking in booking_ids:
+
+            if self.terminated is True:
+                return
+
+            with self.pause_condition:
+
+                while self.paused:
+                    self.pause_condition.wait()
+
+                if self.terminated is True:
+                    return
+            
             logger.info("Processing booking : " + booking)
             self.__navigate_and_download(booking)
             last_booking = booking
