@@ -2,7 +2,7 @@ import importlib
 import os
 import tkinter as tk
 from logging import Logger
-from tkinter import Label, Frame, Text, HORIZONTAL, ttk, messagebox, filedialog
+from tkinter import Label, Frame, Text, HORIZONTAL, ttk, messagebox, Widget
 from tkinter.ttk import Combobox
 from types import ModuleType
 
@@ -11,6 +11,7 @@ from src.common.FileUtil import load_key_value_from_file_properties
 from src.common.ResourceLock import ResourceLock
 from src.common.ThreadLocalLogger import get_current_logger
 from src.gui.TextBoxLoggingHandler import setup_textbox_logger
+from src.gui.UIComponentFactory import UIComponentFactory
 from src.observer.Event import Event
 from src.observer.EventBroker import EventBroker
 from src.observer.EventHandler import EventHandler
@@ -58,14 +59,6 @@ class GUIApp(tk.Tk, EventHandler):
         self.current_input_setting_values = {}
         self.current_automated_task_name = None
 
-        self.save_button = tk.Button(self.container_frame,
-                                     text='Save',
-                                     command=self.save_input,
-                                     bg='#B678F2', fg='#FFFFFF', font=('Maersk Headline', 11),
-                                     width=9, height=1, activeforeground='#FB3D52',
-                                     )
-        self.save_button.pack()
-
         self.is_task_currently_pause: bool = False
         self.pause_button = tk.Button(self.container_frame,
                                       text='Pause',
@@ -106,14 +99,6 @@ class GUIApp(tk.Tk, EventHandler):
         self.textbox.pack()
         setup_textbox_logger(self.textbox)
 
-        self.use_gui_var = tk.BooleanVar()
-        self.use_gui_var.set(True)
-
-    def create_control_buttons(self):
-        self.pause_button.pack(side=tk.LEFT, padx=5)
-        self.terminate_button.pack(side=tk.LEFT, padx=5)
-        self.save_button.pack(side=tk.LEFT, padx=5)
-
     def populate_task_dropdown(self):
         input_dir: str = os.path.join(ROOT_DIR, "input")
         automated_task_names: list[str] = []
@@ -128,33 +113,6 @@ class GUIApp(tk.Tk, EventHandler):
 
     def callback_before_run_task(self):
         setup_textbox_logger(self.textbox)
-
-    def persist_settings_to_file(self):
-        if self.current_automated_task_name is None:
-            return
-
-        file_path: str = os.path.join(ROOT_DIR, "input", "{}.properties".format(self.current_automated_task_name))
-
-        with ResourceLock(file_path=file_path):
-
-            with open(file_path, 'w') as file:
-                file.truncate(0)
-
-            with open(file_path, 'a') as file:
-                for key, value in self.current_input_setting_values.items():
-                    file.write(f"{key} = {value}\n")
-        self.logger.info("Data persisted successfully.")
-
-    def update_field_data(self, event):
-        text_widget = event.widget
-        new_value = text_widget.get("1.0", "end-1c")
-        field_name = text_widget.special_id
-        self.current_input_setting_values[field_name] = new_value
-        self.logger.debug("Change data on field {} to {}".format(field_name, new_value))
-
-    def update_use_gui_setting(self, event=None):
-        self.current_input_setting_values['use.GUI'] = str(self.use_gui_var.get())
-        self.persist_settings_to_file()
 
     def update_frame_content(self, selected_task):
         # Clear the content frame
@@ -177,10 +135,7 @@ class GUIApp(tk.Tk, EventHandler):
         self.automated_task: AutomatedTask = clazz(input_setting_values, self.callback_before_run_task)
 
         for each_setting, initial_value in input_setting_values.items():
-            if each_setting == 'use.GUI':
-                continue
-
-            # Create a container frame for each label and text input pair
+            # Create a container frame for each pair combining a label and an input
             setting_frame = Frame(self.content_frame, background='#FFFFFF')
             setting_frame.pack(anchor="w", pady=5)
 
@@ -189,45 +144,9 @@ class GUIApp(tk.Tk, EventHandler):
                                 font=('Maersk Text', 9), fg='#FFFFFF', bg='#FB3D52', borderwidth=0)
             field_label.pack(side="left")
 
-            path_var = tk.StringVar()
-
-            # Determine if the setting is a folder or file path
-            if each_setting.endswith('.folder'):
-                field_button = tk.Button(master=setting_frame, text="...",
-                                         command=lambda var=path_var: self.choose_folder(var),
-                                         height=1, borderwidth=0, bg='#FB3D52', fg='#FFFFFF')
-            elif each_setting.endswith('.path'):
-                field_button = tk.Button(master=setting_frame, text="...",
-                                         command=lambda var=path_var: self.choose_file(var),
-                                         height=1, borderwidth=0, bg='#FB3D52', fg='#FFFFFF')
-            else:
-                field_button = None
-
-            if field_button:
-                field_button.pack(side="right")
-
-            field_input = Text(master=setting_frame, width=80, height=1, font=('Maersk Text', 9), background='#EDEDED',
-                               fg='#000000', borderwidth=0)
-            field_input.pack(side="left")
-
-            field_input.special_id = each_setting
-            field_input.insert("1.0", '' if initial_value is None else initial_value)
-
-            field_input.bind("<KeyRelease>", self.update_field_data)
-
-            # Cập nhật giá trị của StringVar vào field_input khi giá trị thay đổi
-            path_var.trace("w", lambda *args, var=path_var, text=field_input: self.update_text_from_var(var, text))
-
-        self.use_gui_var.set(True if input_setting_values.get('use.GUI') == 'True' else 'False')
-
-        use_gui_checkbox = tk.Checkbutton(self.content_frame, text="Use GUI", variable=self.use_gui_var,
-                                          font=('Maersk Text', 9),
-                                          background='#2FACE8', width=21, height=1,
-                                          command=self.update_use_gui_setting)
-
-        use_gui_checkbox.select() if self.use_gui_var.get() else use_gui_checkbox.deselect()
-        use_gui_checkbox.bind("<Button-1>", self.update_use_gui_setting)
-        use_gui_checkbox.pack(anchor="w", pady=5)
+            new_component: Widget = UIComponentFactory.get_instance(self).create_component(each_setting,
+                                                                                           initial_value,
+                                                                                           setting_frame)
 
         perform_button = tk.Button(self.content_frame,
                                    text='Perform',
@@ -259,7 +178,6 @@ class GUIApp(tk.Tk, EventHandler):
         self.persist_settings_to_file()
         selected_task = self.automated_tasks_dropdown.get()
         self.update_frame_content(selected_task)
-        self.update_save_button_state()
 
     def handle_click_on_perform_task_button(self, task: AutomatedTask):
         if task is not None and task.is_alive():
@@ -287,72 +205,10 @@ class GUIApp(tk.Tk, EventHandler):
         return
 
     def handle_terminate_button(self):
-
         self.automated_task = None
         self.progressbar['value'] = 0
         self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",
                                                      text="{} {}%".format("None Task", 0))
-
-    # Function to handle choosing a folder
-    def choose_folder(self, var):
-        folder_selected = filedialog.askdirectory()
-
-        if folder_selected:
-            var.set(folder_selected)
-            self.after(100, self.persist_settings_to_file)
-
-    def choose_file(self, var):
-        file_selected = filedialog.askopenfilename(filetypes=[("All Files", "*.*")])
-
-        if file_selected:
-            var.set(file_selected)
-            self.after(100, self.persist_settings_to_file)
-
-    def update_text_from_var(self, var, text):
-        text.delete("1.0", "end")
-        text.insert("1.0", var.get())
-
-    def check_all_fields_filled(self):
-        for child in self.content_frame.winfo_children():
-            if isinstance(child, Frame):
-                for widget in child.winfo_children():
-                    if isinstance(widget, Text):
-                        if not widget.get("1.0", "end-1c").strip():  # Check if the field is empty
-                            return False
-        return True
-
-    def update_save_button_state(self):
-        if self.check_all_fields_filled():
-            self.save_button.config(state=tk.NORMAL)
-        else:
-            self.save_button.config(state=tk.DISABLED)
-
-    def save_input(self):
-        """
-        Create a dictionary to store the values of each field
-        """
-
-        saved_data = {}
-
-        # Iterate over the fields to retrieve their values
-        for child in self.content_frame.winfo_children():
-            if isinstance(child, Frame):
-                for widget in child.winfo_children():
-                    if isinstance(widget, Text):
-                        field_name = widget.special_id
-                        field_value = widget.get("1.0", "end-1c").strip()
-                        saved_data[field_name] = field_value
-
-        # Determine the file name based on the selected task
-        file_name = f"{self.current_automated_task_name}.properties"
-        file_path = os.path.join(ROOT_DIR, "input", file_name)
-
-        # Save the data to the file
-        with open(file_path, 'w') as file:
-            for field_name, field_value in saved_data.items():
-                file.write(f"{field_name} = {field_value}\n")
-
-        self.logger.info('Saved your input at {}'.format(file_path))
 
 
 if __name__ == "__main__":
