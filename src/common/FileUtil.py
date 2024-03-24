@@ -1,20 +1,20 @@
-import re
 import copy
+import os
+import re
+import zipfile
+from datetime import datetime, timedelta
+from logging import Logger
 from typing import Callable
 
 import openpyxl
-import zipfile
-import os
-
-from datetime import datetime, timedelta
-from logging import Logger
 from openpyxl.cell.cell import Cell
 from openpyxl.workbook.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
 from src.common.Constants import ROOT_DIR
-from src.common.ThreadLocalLogger import get_current_logger
 from src.common.ResourceLock import ResourceLock
+from src.common.ThreadLocalLogger import get_current_logger
+
 
 @staticmethod
 def persist_settings_to_file(task_name: str, setting_values: dict[str, str]):
@@ -29,6 +29,7 @@ def persist_settings_to_file(task_name: str, setting_values: dict[str, str]):
 
     logger = get_current_logger()
     logger.debug("Data persisted successfully")
+
 
 def load_key_value_from_file_properties(setting_file: str) -> dict[str, str]:
     logger: Logger = get_current_logger()
