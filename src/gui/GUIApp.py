@@ -201,9 +201,11 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
                                 "Please terminate the current task before run a new one")
             return
 
-        self.automated_task = create_task_instance(self.current_task_settings,
-                                                   self.current_task_name,
-                                                   lambda: setup_textbox_logger(self.textbox))
+        if self.automated_task is None:
+            self.automated_task = create_task_instance(self.current_task_settings,
+                                                       self.current_task_name,
+                                                       lambda: setup_textbox_logger(self.textbox))
+
         self.custom_progressbar_text_style.configure("Text.Horizontal.TProgressbar",
                                                      text="{} {}%".format(type(self.automated_task).__name__, 0))
         self.automated_task.start()
@@ -226,6 +228,10 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
     def handle_reset_button(self):
         if self.automated_task:
             self.automated_task.terminate()
+
+        if self.is_task_currently_pause:
+            self.pause_button.config(text="Pause")
+            self.is_task_currently_pause = False
 
         self.automated_task = None
         self.progressbar['value'] = 0

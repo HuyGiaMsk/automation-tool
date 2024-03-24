@@ -91,8 +91,8 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
             self.automate()
         except Exception as exception:
             logger.exception(str(exception))
-
         logger.info("Done task. It ends at {}".format(datetime.now()))
+        del logging.Logger.manager.loggerDict[self._settings['invoked_class']]
 
     def perform_mainloop_on_collection(self,
                                        collection,
