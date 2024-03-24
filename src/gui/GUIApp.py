@@ -61,10 +61,6 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
 
         self.render_main_content_frame_for_first_task(tasks_dropdown=tasks_dropdown)
 
-        self.pause_button = self.render_pause_button(parent_frame=whole_app_frame)
-
-        self.render_reset_button(parent_frame=whole_app_frame)
-
         self.progress_bar, self.progress_bar_label = self.render_progress_bar(parent_frame=whole_app_frame)
 
         self.logging_textbox = self.render_textbox_logger(parent_frame=whole_app_frame)
@@ -179,13 +175,26 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
             UIComponentFactory.get_instance(self).create_component(each_setting, initial_value, setting_frame)
 
         self.automated_task.settings = self.current_task_settings
-        perform_button = tk.Button(self.main_content_frame,
+
+        button_frame = tk.Frame(master=self.main_content_frame)
+        button_frame.pack(expand=True, fill="both")
+
+        # Create a left and right frame with a flexible column configuration
+        left_frame = tk.Frame(button_frame)
+        left_frame.pack(side="left", expand=True, fill="both")
+
+        right_frame = tk.Frame(button_frame)
+        right_frame.pack(side="right", expand=True, fill="both")
+
+        perform_button = tk.Button(button_frame,
                                    text='Perform',
                                    font=('Maersk Text', 11),
                                    command=lambda: self.handle_perform_button(),
                                    bg='#FB3D52', fg='#FFFFFF',
                                    width=9, height=1, activeforeground='#FB3D52')
-        perform_button.pack(padx=5)
+        perform_button.pack(side='left')
+        self.pause_button = self.render_pause_button(parent_frame=button_frame)
+        self.render_reset_button(parent_frame=button_frame)
 
     def render_main_content_frame_for_first_task(self, tasks_dropdown: Combobox):
         tasks_dropdown.focus_set()
@@ -211,7 +220,7 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
         pause_button: Button = tk.Button(master=parent_frame, text='Pause', command=self.handle_pause_button,
                                          bg='#2FACE8', fg='#FFFFFF', font=('Maersk Headline', 11), width=9, height=1,
                                          activeforeground='#2FACE8')
-        pause_button.pack()
+        pause_button.pack(side='left')
         return pause_button
 
     def handle_pause_button(self):
@@ -233,7 +242,7 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
         reset_button: Button = tk.Button(parent_frame, text='Reset', command=self.handle_reset_button,
                                          bg='#E34498', fg='#FFFFFF', font=('Maersk Headline', 11), width=9, height=1,
                                          activeforeground='#E34498')
-        reset_button.pack()
+        reset_button.pack(side='left')
         return reset_button
 
     def handle_reset_button(self):
