@@ -23,8 +23,6 @@ from src.setup.DownloadDriver import place_suitable_chromedriver, get_full_brows
 
 
 class AutomatedTask(Percentage, ResumableThread, ABC):
-    _setting: set[str] = None
-
     @abstractmethod
     def mandatory_settings(self) -> list[str]:
         pass
@@ -32,6 +30,16 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
     @abstractmethod
     def automate(self):
         pass
+
+    @property
+    def settings(self) -> dict[str, str]:
+        return self._settings
+
+    @settings.setter
+    def settings(self, settings: dict[str, str]):
+        if settings is None:
+            raise ValueError("Provided settings is None")
+        self._settings = settings
 
     def __init__(self,
                  settings: dict[str, str],
@@ -60,10 +68,9 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
         else:
             self._timingFactor = float(self._settings['time.unit.factor'])
 
-        self._use_gui = False if self._settings['use.GUI'] is 'False' else 'True'.lower() == str(
-            self._settings['use.GUI']).lower()
+        self.use_gui = 'True'.lower() == str(self._settings['use.GUI']).lower()
 
-        if not self._use_gui:
+        if not self.use_gui:
             logger.info('Run in headless mode')
         self._driver = None
 
@@ -84,14 +91,15 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
             self.automate()
         except Exception as exception:
             logger.exception(str(exception))
-
         logger.info("Done task. It ends at {}".format(datetime.now()))
+        del logging.Logger.manager.loggerDict[self._settings['invoked_class']]
 
     def perform_mainloop_on_collection(self,
                                        collection,
                                        critical_operation_on_each_element: Callable[[object], None]):
         self.current_element_count = 0
         self.total_element_size = len(collection)
+        logger: Logger = get_current_logger()
 
         for each_element in collection:
 
@@ -101,6 +109,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
             with self.pause_condition:
 
                 while self.paused:
+                    logger.info("Currently pause")
                     self.pause_condition.wait()
 
                 if self.terminated is True:
@@ -114,7 +123,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
 
         options: webdriver.ChromeOptions = webdriver.ChromeOptions()
 
-        if not self._use_gui:
+        if not self.use_gui:
             options.add_argument("--headless")
             options.add_argument('--disable-gpu')
             options.add_argument("--start-maximized")
@@ -143,7 +152,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
             "download.directory_upgrade": True,
             "excludeSwitches": ['enable-logging']
         }
-        if not self._use_gui:
+        if not self.use_gui:
             prefs['plugins.always_open_pdf_externally'] = True
 
         options.add_experimental_option("prefs", prefs)
@@ -281,7 +290,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
                                         first_time_sleep: int = 1,
                                         waiting_time: int = 30) -> WebElement:
         time.sleep(first_time_sleep * self._timingFactor)
-        if self._use_gui:
+        if self.use_gui:
             WebDriverWait(self._driver, waiting_time * self._timingFactor).until(method)
         queried_element: WebElement = self._driver.find_element(by=by, value=element_selector)
         return queried_element
