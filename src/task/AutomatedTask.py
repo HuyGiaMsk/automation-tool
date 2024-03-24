@@ -23,8 +23,6 @@ from src.setup.DownloadDriver import place_suitable_chromedriver, get_full_brows
 
 
 class AutomatedTask(Percentage, ResumableThread, ABC):
-    _setting: set[str] = None
-
     @abstractmethod
     def mandatory_settings(self) -> list[str]:
         pass
@@ -32,6 +30,16 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
     @abstractmethod
     def automate(self):
         pass
+
+    @property
+    def settings(self) -> dict[str, str]:
+        return self._settings
+
+    @settings.setter
+    def settings(self, settings: dict[str, str]):
+        if settings is None:
+            raise ValueError("Provided settings is None")
+        self._settings = settings
 
     def __init__(self,
                  settings: dict[str, str],
@@ -60,8 +68,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
         else:
             self._timingFactor = float(self._settings['time.unit.factor'])
 
-        self._use_gui = False if self._settings['use.GUI'] is 'False' else 'True'.lower() == str(
-            self._settings['use.GUI']).lower()
+        self._use_gui = 'True'.lower() == str(self._settings['use.GUI']).lower()
 
         if not self._use_gui:
             logger.info('Run in headless mode')
@@ -92,6 +99,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
                                        critical_operation_on_each_element: Callable[[object], None]):
         self.current_element_count = 0
         self.total_element_size = len(collection)
+        logger: Logger = get_current_logger()
 
         for each_element in collection:
 
@@ -101,6 +109,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
             with self.pause_condition:
 
                 while self.paused:
+                    logger.info("Currently pause")
                     self.pause_condition.wait()
 
                 if self.terminated is True:
