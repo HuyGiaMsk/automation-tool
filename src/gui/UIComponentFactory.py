@@ -58,7 +58,7 @@ class UIComponentFactory:
             logger.debug("Change data on field {} to {}".format(field_name, new_value))
 
         field_label = tk.Label(master=parent_frame, text=setting_key, width=25,
-                               font=('Maersk Text', 9), fg='#FFFFFF', bg='#FB3D52', borderwidth=0)
+                               font=('Maersk Text', 9), fg='#FFFFFF', bg='#00243D', borderwidth=0)
         field_label.pack(side="left")
 
         field_input = tk.Text(master=parent_frame, width=80, height=1, font=('Maersk Text', 9),
@@ -83,7 +83,7 @@ class UIComponentFactory:
         text_box: Text = self.create_textbox_input(setting_key, setting_value, parent_frame)
         btn_choose = tk.Button(master=parent_frame, text="Choose Folder",
                                command=lambda: choosing_dir_callback(text_box),
-                               height=1, borderwidth=0, bg='#FB3D52', fg='#FFFFFF')
+                               height=1, borderwidth=0, bg='#2FACE8', fg='#FFFFFF')
         btn_choose.pack(side="right")
 
         return text_box
@@ -99,9 +99,9 @@ class UIComponentFactory:
                 main_textbox.event_generate("<KeyRelease>")
 
         text_box: Text = self.create_textbox_input(setting_key, setting_value, parent_frame)
-        btn_choose = tk.Button(master=parent_frame, text="Choose Folder",
+        btn_choose = tk.Button(master=parent_frame, text="Choose File",
                                command=lambda: choosing_file_callback(text_box),
-                               height=1, borderwidth=0, bg='#FB3D52', fg='#FFFFFF')
+                               height=1, borderwidth=0, bg='#2FACE8', fg='#FFFFFF')
         btn_choose.pack(side="right")
 
         return text_box
