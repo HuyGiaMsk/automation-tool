@@ -218,8 +218,8 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
 
     def render_pause_button(self, parent_frame: Frame) -> tk.Button:
         pause_button: Button = tk.Button(master=parent_frame, text='Pause', command=self.handle_pause_button,
-                                         bg='#FB3D52', fg='#FFFFFF', font=('Maersk Headline', 11), width=9, height=1,
-                                         activeforeground='#2FACE8')
+                                         bg='#FA6A55', fg='#FFFFFF', font=('Maersk Headline', 11), width=9, height=1,
+                                         activeforeground='#FA6A55')
         pause_button.pack(side='left')
         return pause_button
 
@@ -269,9 +269,9 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
                                     'children': [('Horizontal.Progressbar.pbar', {'side': 'left', 'sticky': 'ns'}),
                                                  ("Horizontal.Progressbar.label", {"sticky": ""})],
                                     'sticky': 'nswe'})])
-        progressbar_text.configure("Text.Horizontal.TProgressbar", text="None 0 %", background='#FB3D52',
-                                   troughcolor='#FB3D52', troughrelief='flat', bordercolor='#FB3D52',
-                                   lightcolor='#FB3D52', darkcolor='#FB3D52')
+        progressbar_text.configure(style="Text.Horizontal.TProgressbar", text="None 0 %", background='#FB3D52',
+                                   troughcolor='#40AB35', troughrelief='flat', bordercolor='#FB3D52',
+                                   lightcolor='#42B0D5', darkcolor='#00243D')
 
         progressbar: Progressbar = ttk.Progressbar(parent_frame, orient=HORIZONTAL, length=800, mode="determinate",
                                                    maximum=100, style="Text.Horizontal.TProgressbar")

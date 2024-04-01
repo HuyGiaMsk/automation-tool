@@ -81,7 +81,7 @@ class UIComponentFactory:
                 main_textbox.event_generate("<KeyRelease>")
 
         text_box: Text = self.create_textbox_input(setting_key, setting_value, parent_frame)
-        btn_choose = tk.Button(master=parent_frame, text="Choose Folder",
+        btn_choose = tk.Button(master=parent_frame, text="Choose Folder", font=('Maersk Headline', 9),
                                command=lambda: choosing_dir_callback(text_box),
                                height=1, borderwidth=0, bg='#2FACE8', fg='#FFFFFF')
         btn_choose.pack(side="right")
@@ -99,7 +99,7 @@ class UIComponentFactory:
                 main_textbox.event_generate("<KeyRelease>")
 
         text_box: Text = self.create_textbox_input(setting_key, setting_value, parent_frame)
-        btn_choose = tk.Button(master=parent_frame, text="Choose File",
+        btn_choose = tk.Button(master=parent_frame, text="Choose File", font=('Maersk Headline', 9),
                                command=lambda: choosing_file_callback(text_box),
                                height=1, borderwidth=0, bg='#2FACE8', fg='#FFFFFF')
         btn_choose.pack(side="right")

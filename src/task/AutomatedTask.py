@@ -133,7 +133,13 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
 
         else:
             options.add_argument("--start-maximized")
+        prefs = {
+            "download.prompt_for_download": False,
+            "download.directory_upgrade": True,
+            "safebrowsing.enabled": False
+        }
 
+        options.add_experimental_option("prefs", prefs)
         # username = os.getlogin()
         #
         # options.add_argument(r'--user-data-dir=C:\Users\{}\AppData\Local\Google\Chrome\User Data'.format(username))
