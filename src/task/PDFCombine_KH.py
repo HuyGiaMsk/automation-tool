@@ -22,7 +22,7 @@ class PDFCombine_KH(AutomatedTask):
     def mandatory_settings(self) -> list[str]:
         mandatory_keys: list[str] = ['excel.path', 'excel.sheet', 'folder_payment_slip.folder', 'folder_wy.folder',
                                      'folder_inv.folder', 'folder_cheque_request.folder', 'excel.column.bill',
-                                     'folder_combine', 'excel.column.wht']
+                                     'folder_combine.folder', 'excel.column.wht']
         return mandatory_keys
 
     def automate(self):
