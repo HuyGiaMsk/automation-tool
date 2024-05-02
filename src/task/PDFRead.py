@@ -32,8 +32,6 @@ class PDFRead(AutomatedTask):
         sheet_name: str = self._settings['excel.sheet']
         worksheet = excel_reader.get_worksheet(workbook, sheet_name)
 
-        # worksheet.delete_contents(worksheet=worksheet, start_cell='A1', end_cell='AZ200')
-
         path_to_docs = self._settings['folder_docs.folder']
         pdf_counter: int = 1
 

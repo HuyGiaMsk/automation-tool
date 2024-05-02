@@ -124,7 +124,7 @@ class PDFCombine_KH(AutomatedTask):
                 merger.append(os.path.join(folder, pdf_file))
 
         # Save combined PDF
-        output_folder: str = self._settings['folder_combine']
+        output_folder: str = self._settings['folder_combine.folder']
         output_file = os.path.join(output_folder, f"{bill}.pdf")
 
         logger.info("Combined {}.pdf".format(bill))
@@ -147,7 +147,7 @@ class PDFCombine_KH(AutomatedTask):
         """
         logger: Logger = get_current_logger()
 
-        folder_to_combine: str = self._settings['folder_combine']
+        folder_to_combine: str = self._settings['folder_combine.folder']
         merger = PdfMerger()
 
         # Iterate through the PDF files in the folder
@@ -157,7 +157,7 @@ class PDFCombine_KH(AutomatedTask):
                 merger.append(pdf_file_path)
 
         # Save combined PDF
-        output_folder: str = self._settings['folder_combine']
+        output_folder: str = self._settings['folder_combine.folder']
         output_file = os.path.join(output_folder, "Combined.pdf")
 
         # Remove existing output file if exists
