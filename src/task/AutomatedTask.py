@@ -126,29 +126,32 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
         if not self.use_gui:
             options.add_argument("--headless")
             options.add_argument('--disable-gpu')
-            options.add_argument("--start-maximized")
+            options.add_argument("--window-size=%s" % "1920,1080")
             options.add_argument("--use-fake-ui-for-media-stream")
-            options.add_argument("--enable-javascript")
-            options.add_argument("--disable-cookies")
 
         else:
             options.add_argument("--start-maximized")
-        prefs = {
-            "download.prompt_for_download": False,
-            "download.directory_upgrade": True,
-            "safebrowsing.enabled": False
-        }
 
-        options.add_experimental_option("prefs", prefs)
-        # username = os.getlogin()
-        #
-        # options.add_argument(r'--user-data-dir=C:\Users\{}\AppData\Local\Google\Chrome\User Data'.format(username))
         options.add_argument('--disable-extensions')
         options.add_argument('--disable-infobars')
         options.add_argument('--disable-notifications')
-        options.add_argument("--disable-blink-features=AutomationControlled")
-        options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        options.add_experimental_option("useAutomationExtension", False)
+
+        # prefs = {
+        #     "download.prompt_for_download": False,
+        #     "download.directory_upgrade": True,
+        #     "safebrowsing.enabled": False
+        # }
+        #
+        # options.add_experimental_option("prefs", prefs)
+        # # username = os.getlogin()
+        # #
+        # # options.add_argument(r'--user-data-dir=C:\Users\{}\AppData\Local\Google\Chrome\User Data'.format(username))
+        # options.add_argument('--disable-extensions')
+        # options.add_argument('--disable-infobars')
+        # options.add_argument('--disable-notifications')
+        # options.add_argument("--disable-blink-features=AutomationControlled")
+        # options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        # options.add_experimental_option("useAutomationExtension", False)
 
         download_path: str = self._download_folder
         prefs: dict = {
@@ -156,7 +159,8 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
             "download.default_directory": r'{}'.format(download_path),
             "download.prompt_for_download": False,
             "download.directory_upgrade": True,
-            "excludeSwitches": ['enable-logging']
+            "excludeSwitches": ['enable-logging'],
+            "safebrowsing.enable": False
         }
         if not self.use_gui:
             prefs['plugins.always_open_pdf_externally'] = True

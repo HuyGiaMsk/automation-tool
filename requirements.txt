@@ -6,3 +6,9 @@ wget==3.2
 pdfplumber==0.10.3
 xlwings==0.30.13
 PyPDF2==3.0.1
+pyautogui==0.9.54
+PyAutoIt==0.6.5
+pywinauto==0.6.8
+PyVirtualDisplay==3.0
+xvfbwrapper==0.2.9
+fpdf == 1.7.2
