@@ -6,8 +6,8 @@ Please note that all scripts in this tool are currently written for the user who
 .\script\install_env
 
 ### Console approach: 
-- You must provide mandatory information in the `.\input\InvokedClasses.properties` file and its subsequent properties files which represent the settings for each running task.
-
+- For AC Team: You must provide mandatory information in the `.\input\InvokedClasses.properties` file and its subsequent properties files which represent the settings for each running task.
+- For User: you can input in this app directly or go to .\input and find your "name of ticket.properties to input". Besides, you can delete others file if dont want to see them in your app (not InvokedClasses.properties and MinifiedDownloadSource.input)
 vi .\input\InvokedClasses.properties .\input\ExampleTask.properties
 
 - Perform the provided automation task by invoking:
