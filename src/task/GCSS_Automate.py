@@ -89,14 +89,6 @@ class GCSS_Automate(AutomatedTask):
             self.excel_provider.close(workbook)
             self.current_row += 1
 
-    @property
-    def settings(self) -> dict[str, str]:
-        return super().settings
-
-    @property
-    def __class__(self):
-        return super().__class__
-
     def get_items_in_tables(self, window_title_second, shipment, worksheet, status_starting_row,
                             status_starting_column):
 
