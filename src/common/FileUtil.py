@@ -66,6 +66,8 @@ def get_excel_data_in_column_start_at_row(file_path, sheet_name, start_cell) -> 
     if result:
         column = result.group(1)
         start_row = int(result.group(2))
+    else:
+        raise Exception("Not match excel cell position format")
 
     file_path = r'{}'.format(file_path)
     logger.info(

@@ -63,12 +63,15 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
                 os.makedirs(self._download_folder)
                 logger.info(f"Create folder '{self._download_folder}' because it is not existed by default")
 
-        if self._settings['time.unit.factor'] is None:
+        if self._settings.get('time.unit.factor') is None:
             self._timingFactor = 1.0
         else:
-            self._timingFactor = float(self._settings['time.unit.factor'])
+            self._timingFactor = float(self._settings.get('time.unit.factor'))
 
-        self.use_gui = 'True'.lower() == str(self._settings['use.GUI']).lower()
+        if self._settings.get('use.GUI') is None:
+            self.use_gui = False
+        else:
+            self.use_gui = 'True'.lower() == str(self._settings.get('use.GUI')).lower()
 
         if not self.use_gui:
             logger.info('Run in headless mode')
@@ -118,8 +121,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
             critical_operation_on_each_element(each_element)
             self.current_element_count = self.current_element_count + 1
 
-    def _setup_driver(self,
-                      browser_driver: str) -> WebDriver:
+    def _setup_driver(self, browser_driver: str) -> WebDriver:
 
         options: webdriver.ChromeOptions = webdriver.ChromeOptions()
 
