@@ -40,7 +40,8 @@ class XlwingProvider(ExcelReaderProvider):
     def close(self, workbook: Book):
         path_to_workbook: str = workbook.fullname
         workbook.close()
-        del self.name_to_workbook[path_to_workbook]
+        if self.name_to_workbook.get(path_to_workbook) is not None:
+            del self.name_to_workbook[path_to_workbook]
 
     def quit_session(self):
         self._app.quit()
