@@ -151,7 +151,10 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
 
         input_setting_values: dict[str, str] = load_key_value_from_file_properties(setting_file)
         input_setting_values['invoked_class'] = selected_task
-        input_setting_values['time.unit.factor'] = '1'
+
+        if input_setting_values.get('time.unit.factor') is None:
+            input_setting_values['time.unit.factor'] = '1'
+
         if input_setting_values.get('use.GUI') is None:
             input_setting_values['use.GUI'] = 'True'
 

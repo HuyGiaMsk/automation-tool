@@ -8,7 +8,7 @@ import pyautogui
 import pygetwindow as gw
 from pywinauto import Application, WindowSpecification, ElementNotFoundError
 from pywinauto.controls.common_controls import ListViewWrapper, _listview_item
-from pywinauto.controls.win32_controls import ComboBoxWrapper, ButtonWrapper
+from pywinauto.controls.win32_controls import ComboBoxWrapper, ButtonWrapper, EditWrapper
 
 from src.common.FileUtil import get_excel_data_in_column_start_at_row
 from src.common.ThreadLocalLogger import get_current_logger
@@ -26,6 +26,8 @@ class GCSS_Automate(AutomatedTask):
         self.destination_worksheet = None
         self.current_status_excel_col_index: int = 0
         self.current_status_excel_row_index: int = 0
+        self.time_sleep: float = float(settings.get('time.unit.factor'))
+        self.app: Application = None
 
     def mandatory_settings(self) -> list[str]:
         mandatory_keys: list[str] = ['excel.path', 'excel.sheet', 'excel.shipment', 'excel.status.cell']
@@ -114,11 +116,10 @@ class GCSS_Automate(AutomatedTask):
         self.window_title_stack = ['Pending Tray', GCSS_Shipment_MSL_Active_Title, 'Maintain Pricing and Invoicing',
                                    'Maintain Invoice Details']
 
-        app: Application = Application().connect(title=self.window_title_stack[1])
-        window: WindowSpecification = app.window(title=self.window_title_stack[1])
+        self.app: Application = Application().connect(title=self.window_title_stack[1])
+        window: WindowSpecification = self.app.window(title=self.window_title_stack[1])
 
-        time.sleep(0.5)
-        pyautogui.hotkey('ctrl', 'r')
+        self.into_parties_tab(window)
 
         'Get Cnee Name in 2nd window'
         cnee_name: str = self.get_consignee(window, shipment)
@@ -126,60 +127,27 @@ class GCSS_Automate(AutomatedTask):
             self.close_windows_util_reach_first_gscc()
             return
 
-        pyautogui.hotkey('ctrl', 'g')
-        time.sleep(0.5)
+        # 'Get Invoice Tab'
+        self.into_freight_and_pricing_tab(window)
 
-        'Get the tab Invoice, then click the Modify button in 2nd window'
-        click_result: int = self.click_btn_modify(window)
+        # 'Get the tab Invoice, then click the Modify button in 2nd window'
+        third_window_title: str = 'Maintain Pricing and Invoicing'
+        self.into_invoices_tab_and_click_btn_modify(window, third_window_title)
+        pricing_n_invoice_window: WindowSpecification = self.app.window(title=third_window_title)
 
-        if click_result == 0:
-            self.close_windows_util_reach_first_gscc()
-            return
+        # 'Open and interface with 3rd window - Maintain Pricing and Invoicing Window'  
+        Tab_controls_maintain = window.children(class_name="SysTabControl32")[0]
+        Tab_controls_maintain.select(tab=1)
 
-        'Open and interface with 3rd window - Maintain Pricing and Invoicing Window'
-
-        window_title_third: str = 'Maintain Pricing and Invoicing'
-        window_third: WindowSpecification = app.window(title=window_title_third)
-
-        self.get_maintain_pricing_invoice_tab(window_third)
-
-        pyautogui.keyDown('ctrl')
-
-        list_views: ListViewWrapper = window_third.children(class_name="SysListView32")[1]
-        count_item: int = 0
-        for item in list_views.items():
-            item: _listview_item
-            if str(item.text()).__contains__('Collect'):
-                item.select()
-                count_item += 1
-
-        if count_item == 0:
-            status_collect = 'No term Collect'
-
-            logger.info(status_collect)
-            pyautogui.keyUp('ctrl')
-
-            self.input_status_into_excel(status_collect)
-
-            path_to_excel = self._settings['excel.path']
-
-            self.excel_provider.save(workbook=self.excel_provider.get_workbook(path=path_to_excel))
-
-            # self.excel_provider.close(workbook=self.settings['excel.path'])
-
-            self.close_windows_util_reach_first_gscc()
-
-            return
-
-        pyautogui.keyUp('ctrl')
+        self.click_all_item_payment_term_collect(logger, pricing_n_invoice_window)
 
         try_press_i_to_open_maintain_invoice: int = 0
 
         try:
             if try_press_i_to_open_maintain_invoice > 10:
                 raise Exception
-            pyautogui.hotkey('i')
-            time.sleep(0.5)
+            pyautogui.hotkey('ctrl', 'i')
+            time.sleep(self.time_sleep)
             try_press_i_to_open_maintain_invoice += 1
 
         except:
@@ -196,14 +164,14 @@ class GCSS_Automate(AutomatedTask):
         self.wait_for_window('Maintain Invoice Details')
 
         window_title_maintain: str = 'Maintain Invoice Details'
-        window_maintain: WindowSpecification = app.window(title=window_title_maintain)
+        window_maintain: WindowSpecification = self.app.window(title=window_title_maintain)
 
         ComboBox_maintain_payment: ComboBoxWrapper = window_maintain.children(class_name="ComboBox")[0]
         ComboBox_maintain_payment.select('Collect')
 
         'when choosing this payment term, it will automate show a dialog Information'
         dialog_title_infor = 'Information'
-        dialog_window = app.window(title=dialog_title_infor)
+        dialog_window = self.app.window(title=dialog_title_infor)
         dialog_window.wait(timeout=10, wait_for='visible')
         dialog_window.type_keys('{ENTER}')
 
@@ -216,7 +184,7 @@ class GCSS_Automate(AutomatedTask):
             if invoice.__contains__(cnee_name):
                 ComboBox_maintain_invoice_party.select(runner)
                 dialog_title_qs = 'Question'
-                dialog_window = app.window(title=dialog_title_qs)
+                dialog_window = self.app.window(title=dialog_title_qs)
                 dialog_window.wait(timeout=10, wait_for='visible')
                 dialog_window.type_keys('{ENTER}')
                 break
@@ -258,8 +226,9 @@ class GCSS_Automate(AutomatedTask):
         ComboBox_maintain_printable_freight_line.select('Yes')
 
         'Dont have permission to change/edit these infor -> need to recheck'
-        # pyautogui.hotkey('ctrl', 'k')
-        time.sleep(0.5)
+
+        pyautogui.hotkey('ctrl', 'k')
+        time.sleep(self.time_sleep)
 
         'Assume this code can be automate close, then we will close all window until found main window of GCSS'
 
@@ -268,13 +237,61 @@ class GCSS_Automate(AutomatedTask):
 
         self.close_windows_util_reach_first_gscc()
 
+    def click_all_item_payment_term_collect(self, logger, pricing_n_invoice_window) -> int:
+        """"
+            return the number of item payment term collect have been clicked
+        """
+
+        list_views: ListViewWrapper = pricing_n_invoice_window.children(class_name="SysListView32")[1]
+        count_item: int = 0
+
+        pyautogui.keyDown('ctrl')
+        for item in list_views.items():
+            item: _listview_item
+            if str(item.text()).__contains__('Collect'):
+                item.select()
+                count_item += 1
+
+        pyautogui.keyUp('ctrl')
+        if count_item > 0:
+            return count_item
+
+        status_collect = 'No term Collect'
+        logger.info(status_collect)
+        pyautogui.keyUp('ctrl')
+        self.input_status_into_excel(status_collect)
+        path_to_excel = self._settings['excel.path']
+        self.excel_provider.save(workbook=self.excel_provider.get_workbook(path=path_to_excel))
+        self.close_windows_util_reach_first_gscc()
+        return 0
+
+    def into_freight_and_pricing_tab(self, window: WindowSpecification):
+        while True:
+            pyautogui.hotkey('ctrl', 'g')
+
+            list_views: list[ListViewWrapper] = window.children(class_name="SysListView32")
+            if list_views.__len__() == 6:
+                break
+
+            time.sleep(0.5)
+
+    def into_parties_tab(self, window: WindowSpecification):
+
+        while True:
+            pyautogui.hotkey('ctrl', 'r')
+
+            list_views: list[ListViewWrapper] = window.children(class_name="SysListView32")
+            if list_views.__len__() == 2:
+                break
+
+            time.sleep(0.5)
+
     def wait_for_window(self, title):
         max_attempt: int = 30
         current_attempt: int = 0
 
         while current_attempt < max_attempt:
 
-            # Get a list of all open window titles
             window_titles: list[str] = gw.getAllTitles()
 
             for window_title in window_titles:
@@ -283,85 +300,121 @@ class GCSS_Automate(AutomatedTask):
                     return window_title
 
             current_attempt += 1
-            time.sleep(1)
+            time.sleep(self.time_sleep)
 
         raise Exception('Can not find out the asked window {}'.format(title))
 
     def get_consignee(self, window: WindowSpecification, shipment) -> str | None:
 
         logger: Logger = get_current_logger()
-        try_to_get_cnee: int = 0
-        try:
-            list_views: ListViewWrapper = window.children(class_name="SysListView32")[0]
-            items = list_views.items()
 
-            if try_to_get_cnee > 30:
-                raise Exception
-            count = 0
+        list_views: ListViewWrapper = window.children(class_name="SysListView32")[0]
 
-            for item in items:
-                item: _listview_item
+        items = list_views.items()
+        count_row = 0
 
-                if str(item.text()).__contains__('Consignee'):
-                    cnee_name = (items[count - 1].text())
-                    logger.info('Get CNEE {}'.format(cnee_name))
-                    return cnee_name
+        cnee_name = None
+        inv_party = None
+        cre_party = None
 
-                count += 1
+        for item in items:
+            item: _listview_item
 
-            try_to_get_cnee += 1
+            if str(item.text()).__contains__('Consignee'):
+                cnee_name = (items[count_row - 1].text())
+                logger.info('Get CNEE {}'.format(cnee_name))
+                item.select()
+                continue
 
-            time.sleep(0.5)
-        except:
+            if str(item.text()).__contains__('Invoice Party'):
+                inv_party = (items[count_row - 1].text())
+                logger.info('Get INV Party {}'.format(inv_party))
+                continue
+
+            if str(item.text()).__contains__('Credit Party'):
+                cre_party = (items[count_row - 1].text())
+                logger.info('Get Credit Party {}'.format(cre_party))
+                continue
+
+            count_row += 1
+
+        if cnee_name is None:
             message_cnee = 'Cannot find CNEE name of the shipment {} in 1st window - Ctrl R'.format(shipment)
             logger.info(message_cnee)
             self.input_status_into_excel(message_cnee)
             return None
 
-    def click_btn_modify(self, window: WindowSpecification) -> int:
-        """
-        Purpose : click the btn Modify
-        Return
-               0: Can not click
-               1: Clicked ok
-        """
-        logger: Logger = get_current_logger()
+        if cnee_name == cre_party and cnee_name == inv_party:
+            logger.info('All parties are correct')
+            return cnee_name
 
-        logger.info("Try to click btn modify")
+        cnee_edit_element: EditWrapper = window.children(class_name="Edit")[14]
+        cnee_scv_no: str = cnee_edit_element.texts()
 
+        self.adding_invoice_and_credit_parties(window, cnee_scv_no)
+        return cnee_name
+
+    def adding_invoice_and_credit_parties(self, window: WindowSpecification, cnee_scv_no: str):
+        while not self.is_having_window_with_title('Party Details'):
+            pyautogui.hotkey('alt', 'a')
+        self.window_title_stack.append('Party Details')
+
+        while not self.is_having_window_with_title('Customer Search'):
+            pyautogui.hotkey('alt', 'c')
+        self.window_title_stack.append('Customer Search')
+
+        window = self.app.window(title=self.window_title_stack[self.window_title_stack.__len__() - 1])
+        pyautogui.typewrite(cnee_scv_no[0])
+
+        ComboBox_Customer_ID: ComboBoxWrapper = window.children(class_name="ComboBox")[0]
+        ComboBox_Customer_ID.select('Customer ID')
+
+        self.window_title_stack.pop()
+        while not self.is_having_window_with_title(self.window_title_stack[self.window_title_stack.__len__() - 1]):
+            pyautogui.hotkey('alt', 's')
+
+        window = self.app.window(title=self.window_title_stack[self.window_title_stack.__len__() - 1])
+        list_views: ListViewWrapper = window.children(class_name="SysListView32")[0]
+
+        try:
+            pyautogui.keyDown('ctrl')
+            for item in list_views.items():
+                if item.text() == 'Invoice Party':
+                    item.select()
+                    continue
+                if item.text() == 'Credit Party':
+                    item.select()
+                    continue
+        finally:
+            pyautogui.keyUp('ctrl')
+
+        pyautogui.hotkey('tab')
+        pyautogui.hotkey('enter')
+
+        self.window_title_stack.pop()
+        while not self.is_having_window_with_title(self.window_title_stack[self.window_title_stack.__len__() - 1]):
+            pyautogui.hotkey('alt', 'k')
+
+    def into_invoices_tab_and_click_btn_modify(self, window: WindowSpecification, next_window_title: str):
         Tab_controls = window.children(class_name="SysTabControl32")[0]
         Tab_controls.select(tab=1)
 
-        Modify_button_in_invoices: list[ButtonWrapper] = window.children(class_name="Button")
+        while self.is_having_window_with_title(next_window_title) is False:
+            Modify_button_in_invoices: list[ButtonWrapper] = window.children(class_name="Button")
 
-        for button in Modify_button_in_invoices:
+            for button in Modify_button_in_invoices:
+                if button.texts()[0] == 'Modif&y':
+                    button.click()
+                    return
 
-            if button.texts()[0] == 'Modif&y':
-                button.click()
-                logger.info("Click btn modify ok")
-                return 1
+    def is_having_window_with_title(self, title: str) -> bool:
+        window_titles: list[str] = gw.getAllTitles()
 
-        return 0
+        for window_title in window_titles:
+            if window_title.__contains__(title):
+                return True
 
-    def get_maintain_pricing_invoice_tab(self, window: WindowSpecification):
-        logger: Logger = get_current_logger()
-        try_to_get_systab: int = 0
-        try:
-
-            if try_to_get_systab > 30:
-                raise Exception
-
-            Tab_controls_maintain = window.children(class_name="SysTabControl32")[0]
-            Tab_controls_maintain.select(tab=1)
-            time.sleep(0.5)
-            try_to_get_systab += 1
-
-        except:
-            message_pricing = 'Cannot get tab Invoice in window Maintain pricing and invoicing'
-            logger.info(message_pricing)
-
-            self.input_status_into_excel(message_pricing)
-            return
+        return False
 
     def close_windows_util_reach_first_gscc(self):
         return self.close_windows_with_window_title_stack(self.window_title_stack)
