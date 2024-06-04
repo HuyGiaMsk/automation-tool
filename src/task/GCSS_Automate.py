@@ -6,6 +6,7 @@ from typing import Callable, Tuple
 import autoit
 import pyautogui
 import pygetwindow as gw
+from pygetwindow import Win32Window
 from pywinauto import Application, WindowSpecification, ElementNotFoundError
 from pywinauto.controls.common_controls import ListViewWrapper, _listview_item
 from pywinauto.controls.win32_controls import ComboBoxWrapper, ButtonWrapper, EditWrapper
@@ -128,7 +129,8 @@ class GCSS_Automate(AutomatedTask):
             return
 
         # 'Get Invoice Tab'
-        self.into_freight_and_pricing_tab(window)
+        window: WindowSpecification = self.app.window(title=self.window_title_stack[1])
+        self.into_freight_and_pricing_tab(window, shipment)
 
         # 'Get the tab Invoice, then click the Modify button in 2nd window'
         third_window_title: str = 'Maintain Pricing and Invoicing'
@@ -265,7 +267,8 @@ class GCSS_Automate(AutomatedTask):
         self.close_windows_util_reach_first_gscc()
         return 0
 
-    def into_freight_and_pricing_tab(self, window: WindowSpecification):
+    def into_freight_and_pricing_tab(self, window: WindowSpecification, shipment):
+
         while True:
             pyautogui.hotkey('ctrl', 'g')
 
@@ -279,11 +282,9 @@ class GCSS_Automate(AutomatedTask):
 
         while True:
             pyautogui.hotkey('ctrl', 'r')
-
             list_views: list[ListViewWrapper] = window.children(class_name="SysListView32")
             if list_views.__len__() == 2:
                 break
-
             time.sleep(0.5)
 
     def wait_for_window(self, title):
@@ -324,16 +325,19 @@ class GCSS_Automate(AutomatedTask):
                 cnee_name = (items[count_row - 1].text())
                 logger.info('Get CNEE {}'.format(cnee_name))
                 item.select()
+                count_row += 1
                 continue
 
             if str(item.text()).__contains__('Invoice Party'):
                 inv_party = (items[count_row - 1].text())
                 logger.info('Get INV Party {}'.format(inv_party))
+                count_row += 1
                 continue
 
             if str(item.text()).__contains__('Credit Party'):
                 cre_party = (items[count_row - 1].text())
                 logger.info('Get Credit Party {}'.format(cre_party))
+                count_row += 1
                 continue
 
             count_row += 1
@@ -364,14 +368,15 @@ class GCSS_Automate(AutomatedTask):
         self.window_title_stack.append('Customer Search')
 
         window = self.app.window(title=self.window_title_stack[self.window_title_stack.__len__() - 1])
-        pyautogui.typewrite(cnee_scv_no[0])
 
+        pyautogui.typewrite(cnee_scv_no[0])
         ComboBox_Customer_ID: ComboBoxWrapper = window.children(class_name="ComboBox")[0]
         ComboBox_Customer_ID.select('Customer ID')
 
         self.window_title_stack.pop()
-        while not self.is_having_window_with_title(self.window_title_stack[self.window_title_stack.__len__() - 1]):
+        while not self.is_current_window_having_title(self.window_title_stack[self.window_title_stack.__len__() - 1]):
             pyautogui.hotkey('alt', 's')
+            time.sleep(self.time_sleep)
 
         window = self.app.window(title=self.window_title_stack[self.window_title_stack.__len__() - 1])
         list_views: ListViewWrapper = window.children(class_name="SysListView32")[0]
@@ -388,11 +393,12 @@ class GCSS_Automate(AutomatedTask):
         finally:
             pyautogui.keyUp('ctrl')
 
-        pyautogui.hotkey('tab')
-        pyautogui.hotkey('enter')
+        list_btn: list[ButtonWrapper] = window.children(class_name="Button")
+        button_right: ButtonWrapper = list_btn[3]
+        button_right.click()
 
         self.window_title_stack.pop()
-        while not self.is_having_window_with_title(self.window_title_stack[self.window_title_stack.__len__() - 1]):
+        while not self.is_current_window_having_title(self.window_title_stack[self.window_title_stack.__len__() - 1]):
             pyautogui.hotkey('alt', 'k')
 
     def into_invoices_tab_and_click_btn_modify(self, window: WindowSpecification, next_window_title: str):
@@ -413,6 +419,14 @@ class GCSS_Automate(AutomatedTask):
         for window_title in window_titles:
             if window_title.__contains__(title):
                 return True
+
+        return False
+
+    def is_current_window_having_title(self, expected_title: str) -> bool:
+        window: Win32Window = gw.getActiveWindow()
+
+        if window.title == expected_title:
+            return True
 
         return False
 
