@@ -130,41 +130,24 @@ class GCSS_Automate(AutomatedTask):
 
         # 'Get Invoice Tab'
         window: WindowSpecification = self.app.window(title=self.window_title_stack[1])
-        self.into_freight_and_pricing_tab(window, shipment)
+        self.into_freight_and_pricing_tab(window)
 
         # 'Get the tab Invoice, then click the Modify button in 2nd window'
         third_window_title: str = 'Maintain Pricing and Invoicing'
-        self.into_invoices_tab_and_click_btn_modify(window, third_window_title)
-        pricing_n_invoice_window: WindowSpecification = self.app.window(title=third_window_title)
+        self.into_invoices_tab_and_click_btn_modify(window, next_window_title=third_window_title)
 
-        # 'Open and interface with 3rd window - Maintain Pricing and Invoicing Window'  
-        Tab_controls_maintain = window.children(class_name="SysTabControl32")[0]
-        Tab_controls_maintain.select(tab=1)
+        # 'Open and interface with 3rd window - Maintain Pricing and Invoicing Window'
+        pricing_n_invoice_window: WindowSpecification = self.app.window(title=third_window_title)
+        Tab_controls_maintain_pricing_and_inv = pricing_n_invoice_window.children(class_name="SysTabControl32")[0]
+        Tab_controls_maintain_pricing_and_inv.select(tab=1)
 
         self.click_all_item_payment_term_collect(logger, pricing_n_invoice_window)
 
-        try_press_i_to_open_maintain_invoice: int = 0
-
-        try:
-            if try_press_i_to_open_maintain_invoice > 10:
-                raise Exception
-            pyautogui.hotkey('ctrl', 'i')
-            time.sleep(self.time_sleep)
-            try_press_i_to_open_maintain_invoice += 1
-
-        except:
-
-            message_choose_row_collect = 'Cannot Open window Maintain Invoice Details'
-            logger.info(message_choose_row_collect)
-            self.input_status_into_excel(message_choose_row_collect)
-
-            self.close_windows_util_reach_first_gscc()
-
-            return None
+        while not self.is_having_window_with_title('Maintain Invoice Details'):
+            pyautogui.hotkey('alt', 'i')
+        self.window_title_stack.append('Maintain Invoice Details')
 
         'Open 4th Window - Maintain Invoice Details'
-        self.wait_for_window('Maintain Invoice Details')
-
         window_title_maintain: str = 'Maintain Invoice Details'
         window_maintain: WindowSpecification = self.app.window(title=window_title_maintain)
 
@@ -199,24 +182,6 @@ class GCSS_Automate(AutomatedTask):
             logger.info(message_change_collect)
 
             self.input_status_into_excel(message_change_collect)
-
-            try_click_cancle_button = 0
-            try:
-                if try_click_cancle_button > 30:
-                    raise Exception
-                self.wait_for_window('Maintain Invoice Details')
-
-                Modify_button_in_4th_window: list[ButtonWrapper] = window_maintain.children(class_name="Button")
-
-                for button in Modify_button_in_4th_window:
-                    if button.texts()[0] == 'Cancel':
-                        button.click()
-                        break
-                try_click_cancle_button += 1
-
-            except:
-                raise Exception
-
             self.close_windows_util_reach_first_gscc()
 
             return
@@ -227,13 +192,22 @@ class GCSS_Automate(AutomatedTask):
         ComboBox_maintain_printable_freight_line: ComboBoxWrapper = window_maintain.children(class_name="ComboBox")[4]
         ComboBox_maintain_printable_freight_line.select('Yes')
 
-        'Dont have permission to change/edit these infor -> need to recheck'
+        # Click OK button in 4th window and window will be auto closed
+        while not self.is_having_window_with_title(self.window_title_stack[self.window_title_stack.__len__() - 1]):
+            pyautogui.hotkey('alt', 'k')
+        self.window_title_stack.append('Maintain Pricing and Invoicing')
 
-        pyautogui.hotkey('ctrl', 'k')
-        time.sleep(self.time_sleep)
+        # Click complete collect button _ in Maintain Pricing and Invoicing window
+        collect_details_collect_status: EditWrapper = window.children(class_name="Edit")[3]
+        while True:
+            pyautogui.hotkey('alt', 't')
+            logger.info()
+            if collect_details_collect_status == 'Yes':
+                break
 
-        'Assume this code can be automate close, then we will close all window until found main window of GCSS'
+            time.sleep(self.time_sleep)
 
+        # Input Excel
         status_shipment: str = 'Done'
         self.input_status_into_excel(status_shipment)
 
@@ -267,7 +241,7 @@ class GCSS_Automate(AutomatedTask):
         self.close_windows_util_reach_first_gscc()
         return 0
 
-    def into_freight_and_pricing_tab(self, window: WindowSpecification, shipment):
+    def into_freight_and_pricing_tab(self, window: WindowSpecification):
 
         while True:
             pyautogui.hotkey('ctrl', 'g')
@@ -308,7 +282,7 @@ class GCSS_Automate(AutomatedTask):
     def get_consignee(self, window: WindowSpecification, shipment) -> str | None:
 
         logger: Logger = get_current_logger()
-
+        logger.info('Checking parties')
         list_views: ListViewWrapper = window.children(class_name="SysListView32")[0]
 
         items = list_views.items()
@@ -323,20 +297,20 @@ class GCSS_Automate(AutomatedTask):
 
             if str(item.text()).__contains__('Consignee'):
                 cnee_name = (items[count_row - 1].text())
-                logger.info('Get CNEE {}'.format(cnee_name))
+                logger.debug('Get CNEE {}'.format(cnee_name))
                 item.select()
                 count_row += 1
                 continue
 
             if str(item.text()).__contains__('Invoice Party'):
                 inv_party = (items[count_row - 1].text())
-                logger.info('Get INV Party {}'.format(inv_party))
+                logger.debug('Get INV Party {}'.format(inv_party))
                 count_row += 1
                 continue
 
             if str(item.text()).__contains__('Credit Party'):
                 cre_party = (items[count_row - 1].text())
-                logger.info('Get Credit Party {}'.format(cre_party))
+                logger.debug('Get Credit Party {}'.format(cre_party))
                 count_row += 1
                 continue
 
@@ -349,16 +323,23 @@ class GCSS_Automate(AutomatedTask):
             return None
 
         if cnee_name == cre_party and cnee_name == inv_party:
-            logger.info('All parties are correct')
+            logger.info('All parties are correct, modifying payment term')
             return cnee_name
 
         cnee_edit_element: EditWrapper = window.children(class_name="Edit")[14]
         cnee_scv_no: str = cnee_edit_element.texts()
 
+        logger.info('Invoice and Credit parties not correct, re-updating these parties')
+
         self.adding_invoice_and_credit_parties(window, cnee_scv_no)
+
+        logger.info('Updated Invoice and Credit Parties - SCV {}'.format(cnee_scv_no))
+
         return cnee_name
 
     def adding_invoice_and_credit_parties(self, window: WindowSpecification, cnee_scv_no: str):
+        logger: Logger = get_current_logger()
+
         while not self.is_having_window_with_title('Party Details'):
             pyautogui.hotkey('alt', 'a')
         self.window_title_stack.append('Party Details')
@@ -397,9 +378,12 @@ class GCSS_Automate(AutomatedTask):
         button_right: ButtonWrapper = list_btn[3]
         button_right.click()
 
+        # Click OK button _ in Maintain Invoice Details
         self.window_title_stack.pop()
         while not self.is_current_window_having_title(self.window_title_stack[self.window_title_stack.__len__() - 1]):
             pyautogui.hotkey('alt', 'k')
+            time.sleep(self.time_sleep)
+        window = self.app.window(title=self.window_title_stack[self.window_title_stack.__len__() - 1])
 
     def into_invoices_tab_and_click_btn_modify(self, window: WindowSpecification, next_window_title: str):
         Tab_controls = window.children(class_name="SysTabControl32")[0]
@@ -412,6 +396,7 @@ class GCSS_Automate(AutomatedTask):
                 if button.texts()[0] == 'Modif&y':
                     button.click()
                     return
+            # pyautogui.hotkey('alt', 'y')
 
     def is_having_window_with_title(self, title: str) -> bool:
         window_titles: list[str] = gw.getAllTitles()
