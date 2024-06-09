@@ -58,33 +58,40 @@ class GCSS_Automate(DesktopAppTask):
 
         for i, shipment in enumerate(shipments):
             logger.info("Start process shipment " + shipment)
+            try:
+                if status_address[i] != "ADDRESS MATCHED":
+                    logger.info(f"Skipping shipment {shipment} due to status: {status_address[i]}")
+                    self.input_status_into_excel('Skip')
+                    self.excel_provider.save(workbook)
+                    continue
 
-            if status_address[i] != "ADDRESS MATCHED":
-                logger.info(f"Skipping shipment {shipment} due to status: {status_address[i]}")
-                self.input_status_into_excel('Skip')
-                self.excel_provider.save(workbook)
-                continue
-
-            if self.terminated is True:
-                return
-            with self.pause_condition:
-                while self.paused:
-                    logger.info("Currently pause")
-                    self.pause_condition.wait()
                 if self.terminated is True:
                     return
+                with self.pause_condition:
+                    while self.paused:
+                        logger.info("Currently pause")
+                        self.pause_condition.wait()
+                    if self.terminated is True:
+                        return
 
-            pyautogui.hotkey('ctrl', 'o')
-            pyautogui.typewrite(shipment)
-            pyautogui.hotkey('tab')
-            pyautogui.hotkey('enter')
+                pyautogui.hotkey('ctrl', 'o')
+                pyautogui.typewrite(shipment)
+                pyautogui.hotkey('tab')
+                pyautogui.hotkey('enter')
 
-            self.process_on_each_shipment(shipment)
+                self.process_on_each_shipment(shipment)
 
-            self.current_element_count += 1
-            self.current_status_excel_row_index += 1
-            self.excel_provider.save(workbook)
-            logger.info("Done with shipment " + shipment)
+                self.current_element_count += 1
+                self.current_status_excel_row_index += 1
+                self.excel_provider.save(workbook)
+
+                logger.info("Done with shipment " + shipment)
+
+            except Exception:
+
+                self.input_status_into_excel('An exception error')
+                logger.info(f'Cannot handle shipment {shipment}. Moving to next shipment')
+                continue
 
         self.excel_provider.close(workbook)
 
@@ -153,12 +160,14 @@ class GCSS_Automate(DesktopAppTask):
             pyautogui.hotkey('tab')
 
         ComboBox_maintain_invoice_party: ComboBoxWrapper = self._window.children(class_name="ComboBox")[1]
-        item_invoices = ComboBox_maintain_invoice_party.item_texts()
+        item_invoices: list[str] = ComboBox_maintain_invoice_party.item_texts()
 
         runner: int = 0
         for invoice in item_invoices:
+            half_index: int = int(len(cnee_name) / 2)
+            start_cnee_name: str = cnee_name[0:half_index]
 
-            if invoice.__contains__(cnee_name):
+            if invoice.startswith(start_cnee_name):
                 #
                 ComboBox_maintain_invoice_party.select(runner)
                 dialog_title_qs = 'Question'
@@ -294,8 +303,9 @@ class GCSS_Automate(DesktopAppTask):
         for item in items:
             item: _listview_item
 
-            if str(item.text()).__contains__(party_name):
+            if str(item.text()) == party_name:
                 party_values.append(items[count_row - 1])
+                count_row += 1
                 continue
 
             count_row += 1
