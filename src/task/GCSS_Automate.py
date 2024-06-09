@@ -58,6 +58,7 @@ class GCSS_Automate(DesktopAppTask):
 
         for i, shipment in enumerate(shipments):
             logger.info("Start process shipment " + shipment)
+
             try:
                 if status_address[i] != "ADDRESS MATCHED":
                     logger.info(f"Skipping shipment {shipment} due to status: {status_address[i]}")
