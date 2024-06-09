@@ -77,6 +77,11 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
             logger.info('Run in headless mode')
         self._driver = None
 
+        if settings.get('time.unit.factor') is None:
+            self._time_sleep: float = 1
+        else:
+            self._time_sleep = float(settings.get('time.unit.factor'))
+
     def perform(self) -> None:
         mandatory_settings: list[str] = self.mandatory_settings()
         mandatory_settings.append('invoked_class')
@@ -175,6 +180,11 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
 
         driver: webdriver.Chrome = webdriver.Chrome(service=service, options=options)
         return driver
+
+    def sleep(self) -> None:
+        self._time_sleep = float(self.settings.get('time.unit.factor'))
+        time.sleep(self._time_sleep)
+        return
 
     def _wait_download_file_complete(self, file_path: str) -> None:
         logger: Logger = get_current_logger()

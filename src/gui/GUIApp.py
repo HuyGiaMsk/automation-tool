@@ -126,6 +126,7 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
                     automated_task_names.append(clean_name)
 
         automated_task_names.remove("AutomatedTask")
+        automated_task_names.remove("DesktopAppTask")
         automated_task_names.remove("__init__")
         dropdown['values'] = automated_task_names
 

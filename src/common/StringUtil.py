@@ -2,6 +2,7 @@ import os.path
 import re
 from logging import Logger
 from re import Match
+from typing import Tuple
 
 from src.common.Constants import ROOT_DIR
 from src.common.ResourceLock import ResourceLock
@@ -102,3 +103,13 @@ def get_row_index_from_excel_cell_format(provided_cell_position: str):
         power_count += 1
 
     return the_row_index
+
+
+def extract_row_col_from_cell_pos_format(start_cell: str) -> Tuple[str, int]:
+    result = re.search(r'([a-zA-Z]+)(\d+)', start_cell)
+    if result:
+        column = result.group(1)
+        row = int(result.group(2))
+        return column, row
+    else:
+        raise ValueError("Input does not match Excel cell position format")
