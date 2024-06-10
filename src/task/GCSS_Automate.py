@@ -3,6 +3,7 @@ from typing import Callable, Iterator
 
 import autoit
 import pyautogui
+import pygetwindow as gw
 from pywinauto import Application, WindowSpecification
 from pywinauto.controls.common_controls import ListViewWrapper, _listview_item
 from pywinauto.controls.win32_controls import ComboBoxWrapper, ButtonWrapper, EditWrapper
@@ -57,6 +58,19 @@ class GCSS_Automate(DesktopAppTask):
         self.total_element_size = len(shipments)
 
         for i, shipment in enumerate(shipments):
+
+            if self.terminated is True:
+                return
+
+            with self.pause_condition:
+
+                while self.paused:
+                    logger.info("Currently pause")
+                    self.pause_condition.wait()
+
+                if self.terminated is True:
+                    return
+
             logger.info("Start process shipment " + shipment)
 
             try:
@@ -64,26 +78,17 @@ class GCSS_Automate(DesktopAppTask):
                     logger.info(f"Skipping shipment {shipment} due to status: {status_address[i]}")
                     self.input_status_into_excel('Skip')
                     self.excel_provider.save(workbook)
+                    self.current_status_excel_row_index += 1
+                    self.current_element_count += 1
                     continue
-
-                if self.terminated is True:
-                    return
-                with self.pause_condition:
-                    while self.paused:
-                        logger.info("Currently pause")
-                        self.pause_condition.wait()
-                    if self.terminated is True:
-                        return
 
                 pyautogui.hotkey('ctrl', 'o')
                 pyautogui.typewrite(shipment)
                 pyautogui.hotkey('tab')
                 pyautogui.hotkey('enter')
-
+                self.sleep()
                 self.process_on_each_shipment(shipment)
-
-                self.current_element_count += 1
-                self.current_status_excel_row_index += 1
+                self.input_status_into_excel('Done')
                 self.excel_provider.save(workbook)
 
                 logger.info("Done with shipment " + shipment)
@@ -91,9 +96,17 @@ class GCSS_Automate(DesktopAppTask):
             except Exception:
 
                 self.input_status_into_excel('An exception error')
+                self.excel_provider.save(workbook)
                 logger.info(f'Cannot handle shipment {shipment}. Moving to next shipment')
+                self._close_windows_util_reach_first_gscc()
+                self.current_status_excel_row_index += 1
+                self.current_element_count += 1
                 continue
 
+            self.current_status_excel_row_index += 1
+            self.current_element_count += 1
+
+        self.excel_provider.save(workbook)
         self.excel_provider.close(workbook)
 
     def process_on_each_shipment(self, shipment):
@@ -186,7 +199,17 @@ class GCSS_Automate(DesktopAppTask):
         ComboBox_maintain_printable_freight_line.select('Yes')
 
         # Click OK button in 4th window and window will be auto closed
-        self._hotkey_then_close_current_window('alt', 'k')
+        number_of_titles_before = len(gw.getAllTitles())
+
+        while len(gw.getAllTitles()) == number_of_titles_before:
+            list_btn: list[ButtonWrapper] = self._window.children(class_name="Button")
+            button_right: ButtonWrapper = list_btn[0]
+            button_right.click()
+
+        number_of_titles_after = len(gw.getAllTitles())
+        if number_of_titles_after > number_of_titles_before:
+            self._window_title_stack.append('Validation failed')
+            raise Exception('Invalid states ! Validation failed !')
 
         # Click complete collect button _ in Maintain Pricing and Invoicing window
         collect_details_collect_status: EditWrapper = self._window.children(class_name="Edit")[3]
@@ -319,6 +342,7 @@ class GCSS_Automate(DesktopAppTask):
         cnee_scv_no: str = cnee_edit_element.texts()
 
         self._window = self._hotkey_then_open_new_window('Party Details', 'alt', 'a')
+        # Some shipments have been update manifes -> return
 
         self._window = self._hotkey_then_open_new_window('Customer Search', 'alt', 'c')
 

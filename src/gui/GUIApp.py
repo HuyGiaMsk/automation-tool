@@ -88,10 +88,10 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
             if event.task_name is not current_task_name:
                 return
 
-            if event.current_percent - float(self.progress_bar['value']) > 10:
-                return
+            # if event.current_percent - float(self.progress_bar['value']) > 10:
+            #     return
 
-            self.progress_bar['value'] = event.current_percent
+            self.progress_bar['value'] = round(event.current_percent)
             self.progress_bar_label.configure("Text.Horizontal.TProgressbar",
                                               text="{} {}%".format(current_task_name,
                                                                    event.current_percent))

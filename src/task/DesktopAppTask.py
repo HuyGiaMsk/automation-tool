@@ -94,13 +94,15 @@ class DesktopAppTask(AutomatedTask, ABC):
 
                 if window.exists(timeout=1):
                     window.close()
-                    logger.info(f"Window with title '{window_title}' has been closed.")
+                    logger.debug(f"Window with title '{window_title}' has been closed.")
                 else:
-                    logger.info(f"Window with title '{window_title}' does not exist.")
+                    logger.debug(f"Window with title '{window_title}' does not exist.")
+
+                window_title_stack.pop()
 
             except ElementNotFoundError:
-                logger.info(f"No window with title '{window_title}' was found.")
+                logger.debug(f"No window with title '{window_title}' was found.")
             except Exception as e:
-                logger.info(f"An error occurred: {e}")
+                logger.debug(f"An error occurred: {e}")
 
         self._wait_for_window(window_title_stack[0])
