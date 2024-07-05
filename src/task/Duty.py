@@ -14,7 +14,7 @@ from selenium.webdriver.remote.webelement import WebElement
 
 from src.common.FileUtil import get_excel_data_in_column_start_at_row
 from src.common.ThreadLocalLogger import get_current_logger
-from src.task.AutomatedTask import AutomatedTask
+from src.task.WebAppTask import WebAppTask
 
 
 class BookingToInfoIndex(Enum):
@@ -22,7 +22,7 @@ class BookingToInfoIndex(Enum):
     STATUS_INDEX_IN_TUPLE = 1
 
 
-class Duty(AutomatedTask):
+class Duty(WebAppTask):
     fcr_to_file_remane = {}
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):

@@ -11,10 +11,10 @@ from selenium.webdriver.support import expected_conditions
 from src.common.FileUtil import get_excel_data_in_column_start_at_row
 from src.common.ResourceLock import ResourceLock
 from src.common.ThreadLocalLogger import get_current_logger
-from src.task.AutomatedTask import AutomatedTask
+from src.task.WebAppTask import WebAppTask
 
 
-class Upload_bill_fcr_only(AutomatedTask):
+class Upload_bill_fcr_only(WebAppTask):
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)

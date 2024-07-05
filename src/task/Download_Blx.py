@@ -12,10 +12,10 @@ from src.common.FileUtil import get_excel_data_in_column_start_at_row, extract_z
     check_parent_folder_contain_all_required_sub_folders, remove_all_in_folder
 from src.common.StringUtil import join_set_of_elements
 from src.common.ThreadLocalLogger import get_current_logger
-from src.task.AutomatedTask import AutomatedTask
+from src.task.WebAppTask import WebAppTask
 
 
-class Download_Blx(AutomatedTask):
+class Download_Blx(WebAppTask):
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)

@@ -17,6 +17,8 @@ class ExampleTask(AutomatedTask):
         return mandatory_keys
 
     def automate(self):
+        self._driver.get("https://tiengviethuchanh.wordpress.com/truyen-thieu-nhi/")
+        time.sleep(100)
         booking_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         self.perform_mainloop_on_collection(booking_ids, self.operation_on_each_element)
 
