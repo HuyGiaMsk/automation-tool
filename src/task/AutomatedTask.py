@@ -35,6 +35,7 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
                  settings: dict[str, str],
                  callback_before_run_task: Callable[[], None]):
         super().__init__()
+        logger: Logger = get_current_logger()
         self._settings: dict[str, str] = settings
         self.callback_before_run_task = callback_before_run_task
 
@@ -42,6 +43,14 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
             self._timingFactor = 1.0
         else:
             self._timingFactor = float(self._settings.get('time.unit.factor'))
+
+        if self._settings.get('use.GUI') is None:
+            self.use_gui = False
+        else:
+            self.use_gui = 'True'.lower() == str(self._settings.get('use.GUI')).lower()
+
+        if not self.use_gui:
+            logger.info('Run in headless mode')
 
     def perform(self) -> None:
         mandatory_settings: list[str] = self.mandatory_settings()
