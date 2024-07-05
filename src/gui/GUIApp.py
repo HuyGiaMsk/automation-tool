@@ -113,19 +113,20 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
 
     # Find all available defined tasks and populate these as values of a dropdown
     def populate_task_dropdown(self, dropdown: Combobox):
-        input_dir: str = os.path.join(ROOT_DIR, 'src', 'task')
-        automated_task_names: list[str] = []
+        tasks_dir: str = os.path.join(ROOT_DIR, 'src', 'task')
+        automated_task_names: set[str] = {"__init__"}
 
-        with ResourceLock(file_path=input_dir):
-            for dir_name in os.listdir(input_dir):
-                if dir_name.lower().endswith(".py"):
-                    clean_name = dir_name.replace(".py", "")
-                    automated_task_names.append(clean_name)
+        for root, _, files in os.walk(tasks_dir):
+            for file in files:
+                if file.lower().endswith(".py"):
+                    clean_name = file.replace(".py", "")
+                    automated_task_names.add(clean_name)
 
         automated_task_names.remove("AutomatedTask")
         automated_task_names.remove("DesktopAppTask")
+        automated_task_names.remove("WebAppTask")
         automated_task_names.remove("__init__")
-        dropdown['values'] = automated_task_names
+        dropdown['values'] = sorted(list(automated_task_names))
 
     def handle_tasks_dropdown(self, event):
         if self.current_task_name is not None and self.current_task_settings is not None:
