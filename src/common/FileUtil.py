@@ -16,7 +16,6 @@ from src.common.ResourceLock import ResourceLock
 from src.common.ThreadLocalLogger import get_current_logger
 
 
-@staticmethod
 def persist_settings_to_file(task_name: str, setting_values: dict[str, str]):
     file_path: str = os.path.join(ROOT_DIR, "input", "{}.properties".format(task_name))
     with ResourceLock(file_path=file_path):
