@@ -185,3 +185,38 @@ def remove_all_in_folder(folder_path: str,
                     remove_all_in_folder(file_path)
         logger.debug(
             r'Deleted all {} in folder {}'.format(file_extension, folder_path))
+
+
+def find_task_module(current_path: str, task_name: str) -> str:
+    for item in os.listdir(current_path):
+
+        item_path = os.path.join(current_path, item)
+
+        if os.path.isdir(item_path):
+            matched_file = find_task_module(item_path, task_name)
+            if matched_file is None:
+                continue
+
+            return matched_file
+
+        if item == f"{task_name}.py":
+            path_parts: list[str] = item_path.replace(os.sep, ".").rsplit(".")
+            path_parts.pop()
+
+            is_collecting: bool = False
+            real_module_paths: list[str] = []
+
+            for part in path_parts:
+
+                if is_collecting:
+                    real_module_paths.append(part)
+                    continue
+
+                if part == 'src':
+                    real_module_paths.append(part)
+                    is_collecting = True
+                    continue
+
+            return ".".join(real_module_paths)
+
+    return None
