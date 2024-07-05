@@ -49,10 +49,9 @@ class Lululemon_PDFRead(AutomatedTask):
                 if self.terminated:
                     return
 
-            fcr_files = []  # Danh sách các file bắt đầu bằng "FCR"
-            other_files = []  # Danh sách các file khác
+            fcr_files = []
+            other_files = []
 
-            # Phân loại các file vào danh sách fcr_files và other_files
             for current_pdf in files:
                 if current_pdf.lower().endswith(".pdf"):
                     if current_pdf.startswith("FCR"):
@@ -60,7 +59,6 @@ class Lululemon_PDFRead(AutomatedTask):
                     else:
                         other_files.append(current_pdf)
 
-            # Xử lý các file bắt đầu bằng "FCR" trước
             for current_pdf in fcr_files:
                 pdf: PDF = pdfplumber.open(os.path.join(root, current_pdf))
                 logger.info("File name : {} PDF counter  = {}".format(current_pdf, pdf_counter))

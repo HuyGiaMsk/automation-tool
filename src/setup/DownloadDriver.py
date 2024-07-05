@@ -27,7 +27,7 @@ def get_latest_version_from_google(base_number_version: str) -> str:
 
 def get_current_local_chrome_base_version() -> str:
     logger: Logger = get_current_logger()
-    base_number_version: str = '121'
+    base_number_version: str = ''
     chrome_registry = os.popen(r'reg query "HKEY_CURRENT_USER\Software\Google\Chrome\BLBeacon" /v version')
     replies = chrome_registry.read()
     replies = replies.split('\n')

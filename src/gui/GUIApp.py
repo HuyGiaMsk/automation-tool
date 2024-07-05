@@ -85,10 +85,7 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
                 return
 
             current_task_name = type(self.automated_task).__name__
-            if event.task_name is not current_task_name:
-                return
-
-            # if event.current_percent - float(self.progress_bar['value']) > 10:
+            # if event.task_name is not current_task_name:
             #     return
 
             self.progress_bar['value'] = round(event.current_percent)

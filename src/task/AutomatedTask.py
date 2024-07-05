@@ -19,7 +19,7 @@ from src.common.Percentage import Percentage
 from src.common.ResumableThread import ResumableThread
 from src.common.StringUtil import validate_keys_of_dictionary
 from src.common.ThreadLocalLogger import get_current_logger, create_thread_local_logger
-from src.setup.DownloadDriver import place_suitable_chromedriver, get_full_browser_driver_path
+from src.setup.DownloadDriver import get_full_browser_driver_path, place_suitable_chromedriver
 
 
 class AutomatedTask(Percentage, ResumableThread, ABC):
@@ -143,23 +143,6 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
         options.add_argument('--disable-infobars')
         options.add_argument('--disable-notifications')
 
-        # prefs = {
-        #     "download.prompt_for_download": False,
-        #     "download.directory_upgrade": True,
-        #     "safebrowsing.enabled": False
-        # }
-        #
-        # options.add_experimental_option("prefs", prefs)
-        # # username = os.getlogin()
-        # #
-        # # options.add_argument(r'--user-data-dir=C:\Users\{}\AppData\Local\Google\Chrome\User Data'.format(username))
-        # options.add_argument('--disable-extensions')
-        # options.add_argument('--disable-infobars')
-        # options.add_argument('--disable-notifications')
-        # options.add_argument("--disable-blink-features=AutomationControlled")
-        # options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        # options.add_experimental_option("useAutomationExtension", False)
-
         download_path: str = self._download_folder
         prefs: dict = {
             "profile.default_content_settings.popups": 0,
@@ -167,7 +150,6 @@ class AutomatedTask(Percentage, ResumableThread, ABC):
             "download.prompt_for_download": False,
             "download.directory_upgrade": True,
             "excludeSwitches": ['enable-logging'],
-            "safebrowsing.enable": False
         }
         if not self.use_gui:
             prefs['plugins.always_open_pdf_externally'] = True

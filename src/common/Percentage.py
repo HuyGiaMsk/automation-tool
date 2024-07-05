@@ -22,7 +22,7 @@ class Percentage(ABC):
 
         self.__current_element_count = new_value
         EventBroker.get_instance().publish(topic=PercentChangedEvent.event_name,
-                                           event=PercentChangedEvent(task_name=self.__class__.__name__,
+                                           event=PercentChangedEvent(task_name=type(self).__name__,
                                                                      current_percent=self._get_current_percentage()))
 
     @property
