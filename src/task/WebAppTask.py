@@ -41,14 +41,6 @@ class WebAppTask(AutomatedTask, ABC):
                 os.makedirs(self._download_folder)
                 logger.info(f"Create folder '{self._download_folder}' because it is not existed by default")
 
-        if self._settings.get('use.GUI') is None:
-            self.use_gui = False
-        else:
-            self.use_gui = 'True'.lower() == str(self._settings.get('use.GUI')).lower()
-
-        if not self.use_gui:
-            logger.info('Run in headless mode')
-
         self._driver: WebDriver = None
 
     def perform(self) -> None:

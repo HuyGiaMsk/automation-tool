@@ -80,13 +80,17 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
 
     # This ui app will act as an observer, listening/handling the event from the publisher
     def handle_incoming_event(self, event: Event) -> None:
+        logger: Logger = get_current_logger()
         if isinstance(event, PercentChangedEvent):
             if self.automated_task is None:
+                logger.error(f'The PercentChangedEvent for ${event.task_name} but no task in action in GUI app')
                 return
 
             current_task_name = type(self.automated_task).__name__
-            # if event.task_name is not current_task_name:
-            #     return
+            if event.task_name is not current_task_name:
+                logger.warning(f'The PercentChangedEvent for ${event.task_name} is '
+                            f'not match with the current task ${current_task_name}')
+                return
 
             self.progress_bar['value'] = round(event.current_percent)
             self.progress_bar_label.configure("Text.Horizontal.TProgressbar",
