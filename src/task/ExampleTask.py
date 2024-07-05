@@ -3,10 +3,10 @@ from logging import Logger
 from typing import Callable
 
 from src.common.ThreadLocalLogger import get_current_logger
-from src.task.AutomatedTask import AutomatedTask
+from src.task.WebAppTask import WebAppTask
 
 
-class ExampleTask(AutomatedTask):
+class ExampleTask(WebAppTask):
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)
@@ -17,6 +17,8 @@ class ExampleTask(AutomatedTask):
         return mandatory_keys
 
     def automate(self):
+        self._driver.get("https://nxbkimdong.com.vn/")
+        time.sleep(100)
         booking_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         self.perform_mainloop_on_collection(booking_ids, self.operation_on_each_element)
 

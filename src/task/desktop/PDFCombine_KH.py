@@ -9,11 +9,11 @@ from src.common.StringUtil import get_row_index_from_excel_cell_format
 from src.common.ThreadLocalLogger import get_current_logger
 from src.excel_reader_provider.ExcelReaderProvider import ExcelReaderProvider
 from src.excel_reader_provider.XlwingProvider import XlwingProvider
-from src.task.AutomatedTask import AutomatedTask
+from src.task.DesktopAppTask import DesktopAppTask
 
 
 # noinspection PyPackageRequirements
-class PDFCombine_KH(AutomatedTask):
+class PDFCombine_KH(DesktopAppTask):
     tax_to_bill: dict[str, str] = {}
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
