@@ -8,7 +8,6 @@ from typing import Tuple
 from src.common.Constants import ROOT_DIR
 from src.common.FileUtil import load_key_value_from_file_properties, persist_settings_to_file
 from src.common.ReflectionUtil import create_task_instance
-from src.common.ResourceLock import ResourceLock
 from src.common.ThreadLocalLogger import get_current_logger
 from src.gui.TextBoxLoggingHandler import setup_textbox_logger
 from src.gui.UIComponentFactory import UIComponentFactory
@@ -89,7 +88,7 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
             current_task_name = type(self.automated_task).__name__
             if event.task_name is not current_task_name:
                 logger.warning(f'The PercentChangedEvent for ${event.task_name} is '
-                            f'not match with the current task ${current_task_name}')
+                               f'not match with the current task ${current_task_name}')
                 return
 
             self.progress_bar['value'] = round(event.current_percent)
@@ -117,11 +116,13 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
 
     # Find all available defined tasks and populate these as values of a dropdown
     def populate_task_dropdown(self, dropdown: Combobox):
+        logger: Logger = get_current_logger()
         tasks_dir: str = os.path.join(ROOT_DIR, 'src', 'task')
         automated_task_names: set[str] = {"__init__"}
 
         for root, _, files in os.walk(tasks_dir):
             for file in files:
+                logger.warning(file)
                 if file.lower().endswith(".py"):
                     clean_name = file.replace(".py", "")
                     automated_task_names.add(clean_name)

@@ -1,21 +1,21 @@
 import logging
 import os
 import time
-
-from selenium import webdriver
 from abc import ABC
 from logging import Logger
 from typing import Callable
 
-from selenium.webdriver.chrome.webdriver import WebDriver
+from selenium import webdriver
 from selenium.common import TimeoutException
+from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.remote.webdriver import WebDriver as AnyDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
 from src.common.ThreadLocalLogger import get_current_logger
-from src.setup.DownloadDriver import place_suitable_chromedriver, get_full_browser_driver_path
+from src.setup.driver.download.DowloadDriverFactory import DownloadDriverFactory
+from src.setup.driver.download.DownloadDriver import DownloadDriver
 from src.task.AutomatedTask import AutomatedTask
 
 
@@ -44,14 +44,14 @@ class WebAppTask(AutomatedTask, ABC):
         self._driver: WebDriver = None
 
     def perform(self) -> None:
-        browser_driver: str = get_full_browser_driver_path()
-        self._driver: WebDriver = self._setup_driver(browser_driver)
+        self._driver: WebDriver = self._setup_driver()
         super().perform()
 
-    def _setup_driver(self, browser_driver: str) -> WebDriver:
+    def _setup_driver(self) -> WebDriver:
+        driver_downloader: DownloadDriver = DownloadDriverFactory.get_downloader()
+        driver_asb_path: str = driver_downloader.get_expected_driver_abs_path()
 
         options: webdriver.ChromeOptions = webdriver.ChromeOptions()
-
         if not self.use_gui:
             options.add_argument("--headless")
             options.add_argument('--disable-gpu')
@@ -78,10 +78,10 @@ class WebAppTask(AutomatedTask, ABC):
 
         options.add_experimental_option("prefs", prefs)
 
-        if not os.path.exists(browser_driver):
-            place_suitable_chromedriver()
+        if not os.path.exists(driver_asb_path):
+            driver_downloader.download_and_place_suitable_version_driver()
 
-        service: webdriver.ChromeService = webdriver.ChromeService(executable_path=r'{}'.format(browser_driver))
+        service: webdriver.ChromeService = webdriver.ChromeService(executable_path=r'{}'.format(driver_asb_path))
         driver: webdriver.Chrome = webdriver.Chrome(service=service, options=options)
         return driver
 
