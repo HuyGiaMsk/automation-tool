@@ -27,8 +27,14 @@ jobs:
         run: |
           pyinstaller automation_tool.spec
 
+      - name: Get tag name
+        id: tag_name
+        run: |
+          $tagName = $env:GITHUB_REF -replace 'refs/tags/', ''
+          Write-Output "::set-output name=tag_version::$tagName"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: automation_tool_${{ github.ref.split('/')[-1]  }}
+          name: automation_tool_${{ steps.tag_name.outputs.tag_version }}
           path: dist/automation_tool.exe
