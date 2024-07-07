@@ -18,7 +18,12 @@ a = Analysis(
         'selenium.webdriver.support.expected_conditions',
         'selenium.webdriver.support.wait',
         'requests',
-        'wget'
+        'wget',
+        'xlwings',
+        'autoit',
+        'pdfplumber',
+        'PyPDF2',
+
     ],
     hookspath=[],
     hooksconfig={},
