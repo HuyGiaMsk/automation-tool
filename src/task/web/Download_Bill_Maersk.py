@@ -13,7 +13,7 @@ from src.common.FileUtil import get_excel_data_in_column_start_at_row
 from src.common.StringUtil import get_row_index_from_excel_cell_format
 from src.common.ThreadLocalLogger import get_current_logger
 from src.excel_reader_provider.XlwingProvider import XlwingProvider
-from src.task.WebAppTask import WebAppTask
+from src.task.WebTask import WebTask
 
 
 class BookingToInfoIndex(Enum):
@@ -21,7 +21,7 @@ class BookingToInfoIndex(Enum):
     TYPE_INDEX_IN_TUPLE = 1
 
 
-class Download_Bill_Maersk(WebAppTask):
+class Download_Bill_Maersk(WebTask):
     bill_to_info = {}
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):

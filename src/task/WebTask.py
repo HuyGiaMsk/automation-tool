@@ -19,7 +19,7 @@ from src.setup.driver.download.DownloadDriver import DownloadDriver
 from src.task.AutomatedTask import AutomatedTask
 
 
-class WebAppTask(AutomatedTask, ABC):
+class WebTask(AutomatedTask, ABC):
 
     def __init__(self,
                  settings: dict[str, str],

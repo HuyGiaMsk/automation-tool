@@ -48,12 +48,12 @@ class DownloadDriverFactory(ABC):
 
     @staticmethod
     def __get_driver_type() -> DriverType:
-        from src.task.WebAppTask import WebAppTask
+        from src.task.WebTask import WebTask
         caller_type: type = DownloadDriverFactory.__get_caller_of_factory()
         if caller_type is None:
             return DriverType.NOT_SPECIFIED
 
-        if issubclass(caller_type, WebAppTask):
+        if issubclass(caller_type, WebTask):
             return DriverType.SELENIUM
 
         return DriverType.NOT_SPECIFIED

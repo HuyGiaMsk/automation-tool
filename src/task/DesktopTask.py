@@ -13,7 +13,7 @@ from src.common.ThreadLocalLogger import get_current_logger
 from src.task.AutomatedTask import AutomatedTask
 
 
-class DesktopAppTask(AutomatedTask, ABC):
+class DesktopTask(AutomatedTask, ABC):
 
     def __init__(self,
                  settings: dict[str, str],

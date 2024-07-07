@@ -3,10 +3,10 @@ from logging import Logger
 from typing import Callable
 
 from src.common.ThreadLocalLogger import get_current_logger
-from src.task.WebAppTask import WebAppTask
+from src.task.WebTask import WebTask
 
 
-class ExampleTask(WebAppTask):
+class ExampleTask(WebTask):
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)

@@ -2,10 +2,11 @@ import os
 from typing import Callable
 
 import xlwings as xw
-from src.task.DesktopAppTask import DesktopAppTask
+
+from src.task.AutomatedTask import AutomatedTask
 
 
-class Convert_FCR_to_PDF(DesktopAppTask):
+class Convert_FCR_to_PDF(AutomatedTask):
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)

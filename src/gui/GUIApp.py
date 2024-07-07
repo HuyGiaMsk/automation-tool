@@ -128,8 +128,8 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
                     automated_task_names.add(clean_name)
 
         automated_task_names.remove("AutomatedTask")
-        automated_task_names.remove("DesktopAppTask")
-        automated_task_names.remove("WebAppTask")
+        automated_task_names.remove("DesktopTask")
+        automated_task_names.remove("WebTask")
         automated_task_names.remove("__init__")
         dropdown['values'] = sorted(list(automated_task_names))
 

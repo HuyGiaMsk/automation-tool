@@ -14,7 +14,7 @@ from src.common.FileUtil import get_excel_data_in_column_start_at_row, extract_z
     remove_all_in_folder
 from src.common.ResourceLock import ResourceLock
 from src.common.ThreadLocalLogger import get_current_logger
-from src.task.WebAppTask import WebAppTask
+from src.task.WebTask import WebTask
 
 
 # Define an enumeration class
@@ -23,7 +23,7 @@ class BookingToInfoIndex(Enum):
     BECODE_INDEX_IN_TUPLE = 1
 
 
-class Download_CottonOn(WebAppTask):
+class Download_CottonOn(WebTask):
     booking_to_info = {}
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
@@ -92,7 +92,7 @@ class Download_CottonOn(WebAppTask):
 
                 if self.terminated is True:
                     return
-            
+
             logger.info("Processing booking : " + booking)
             self.__navigate_and_download(booking)
             last_booking = booking
