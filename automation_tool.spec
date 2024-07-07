@@ -7,6 +7,7 @@ a = Analysis(
     binaries=[],
     datas=[
         ('input', 'input'),
+        ('output', 'output'),
         ('resource', 'resource'),
         ('script', 'script'),
         ('src', 'src'),
@@ -34,7 +35,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='AutomationTool',
+    name='automation_tool',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
