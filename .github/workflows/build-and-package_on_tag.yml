@@ -37,14 +37,17 @@ jobs:
       - name: Retrieve previous tag
         id: prev_tag
         run: |
-          previous_tag=$(git describe --abbrev=0 --tags "$(git rev-list --tags --skip=1 --max-count=1)")
-          echo "::set-output name=previous_tag::$previous_tag"
+          $previousTag = git describe --abbrev=0 --tags ((git rev-list --tags --skip=1 --max-count=1))
+          Write-Output "::set-output name=previous_tag::$previousTag"
 
-      - name: Retrieve commit messages
+      - name: Retrieve commit messages in release
         id: commit_messages
         run: |
-          git log --pretty=format:"%s" "${{ steps.prev_tag.outputs.previous_tag }}..${GITHUB_REF}" > commit_messages.txt
-          echo "::set-output name=commit_messages::$(cat commit_messages.txt)"
+          git log --pretty=format:"%s" $env:PREV_TAG..${env:GITHUB_REF} > commit_messages.txt
+          $commitMessages = Get-Content -Raw commit_messages.txt
+          Write-Output "::set-output name=commit_messages::$commitMessages"
+        env:
+          PREV_TAG: ${{ steps.prev_tag.outputs.previous_tag }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
