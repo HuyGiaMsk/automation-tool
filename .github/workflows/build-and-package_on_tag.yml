@@ -63,7 +63,7 @@ jobs:
         with:
           tag_name: ${{ steps.tag_name.outputs.tag_version }}
           release_name: Release ${{ steps.tag_name.outputs.tag_version }}
-          body_file: commit_messages.txt
+          body_path: commit_messages.txt
 
       - name: Upload Release Asset
         id: upload-release-asset
