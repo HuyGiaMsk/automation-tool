@@ -31,8 +31,8 @@ jobs:
         id: tag_name
         run: |
           echo "Extracting tag name from GITHUB_REF..."
-          tagName=$(echo "${GITHUB_REF}" | sed -n 's/refs\/tags\///p')
-          echo "::set-output name=tag_version::${tagName}"
+          $tagName = $env:GITHUB_REF -replace 'refs/tags/', ''
+          Write-Output "::set-output name=tag_version::$tagName"
 
       - name: Retrieve previous tag
         id: prev_tag
@@ -46,6 +46,12 @@ jobs:
           git log --pretty=format:"%s" "${{ steps.prev_tag.outputs.previous_tag }}..${GITHUB_REF}" > commit_messages.txt
           echo "::set-output name=commit_messages::$(cat commit_messages.txt)"
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: automation_tool_${{ steps.tag_name.outputs.tag_version }}
+          path: dist/automation_tool.exe
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -55,12 +61,6 @@ jobs:
           tag_name: ${{ steps.tag_name.outputs.tag_version }}
           release_name: Release ${{ steps.tag_name.outputs.tag_version }}
           body_file: commit_messages.txt
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: automation_tool_${{ steps.tag_name.outputs.tag_version }}
-          path: dist/automation_tool.exe
 
       - name: Upload Release Asset
         id: upload-release-asset
