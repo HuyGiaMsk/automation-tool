@@ -10,6 +10,8 @@ from src.setup.driver.download.chrome.DownloadWindowsChromeDriver import Downloa
 from src.setup.driver.query.DriverInfoQuery import DriverInfoQuery
 from src.setup.driver.query.DriverInfoQueryFactory import DriverInfoQueryFactory
 
+cache: dict[str, DownloadDriver] = {}
+
 
 class DownloadDriverFactory(ABC):
 
@@ -18,15 +20,27 @@ class DownloadDriverFactory(ABC):
         driver_type: DriverType = DownloadDriverFactory.__get_driver_type()
         query: DriverInfoQuery = DriverInfoQueryFactory.get_query(driver_type=driver_type)
         platform_name = platform.system()
+
+        cache_key: str = f"{driver_type}-{platform_name}"
+        cache_element: DownloadDriver = cache.get(f"{driver_type}-{platform_name}")
+        if cache_element is not None:
+            return cache_element
+
         if driver_type is DriverType.SELENIUM:
 
+            instance: DownloadDriver | None = None
+
             if platform_name == 'Windows':
-                return DownloadWindowsChromeDriver(driver_info_query=query)
+                instance: DownloadDriver = DownloadWindowsChromeDriver(driver_info_query=query)
 
             if platform_name == 'Linux':
-                return DownloadLinuxChromeDriver(driver_info_query=query)
+                instance: DownloadDriver = DownloadLinuxChromeDriver(driver_info_query=query)
 
-            raise Exception(f'Still no support downloading {driver_type} for platform {platform_name}')
+            if instance is None:
+                raise Exception(f'Still no support downloading {driver_type} for platform {platform_name}')
+
+            cache[cache_key] = instance
+            return instance
 
         raise Exception(f"Invalid driver type, we don't support downloading {driver_type}")
 

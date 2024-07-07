@@ -91,6 +91,12 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
                                f'not match with the current task ${current_task_name}')
                 return
 
+            distance_between_ui_percent_n_event_percent: float = (
+                        event.current_percent - float(self.progress_bar['value']))
+            default_distance_of_task: float = self.automated_task.get_percentage_distance()
+            if distance_between_ui_percent_n_event_percent > default_distance_of_task:
+                return
+
             self.progress_bar['value'] = round(event.current_percent)
             self.progress_bar_label.configure("Text.Horizontal.TProgressbar",
                                               text="{} {}%".format(current_task_name,

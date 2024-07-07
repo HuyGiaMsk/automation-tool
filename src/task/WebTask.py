@@ -14,8 +14,8 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
 from src.common.ThreadLocalLogger import get_current_logger
-from src.setup.driver.download.DowloadDriverFactory import DownloadDriverFactory
 from src.setup.driver.download.DownloadDriver import DownloadDriver
+from src.setup.driver.download.DownloadDriverFactory import DownloadDriverFactory
 from src.task.AutomatedTask import AutomatedTask
 
 
