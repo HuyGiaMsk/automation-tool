@@ -44,11 +44,11 @@ jobs:
       - name: Retrieve commit messages in release
         id: commit_messages
         run: |
-          git log --pretty=format:"%s" $env:PREV_TAG..${env:GITHUB_REF} > commit_messages.txt
+          $prevTag = ${{ steps.prev_tag.outputs.previous_tag }}
+          $currentTag = $env:GITHUB_REF -replace 'refs/tags/', ''
+          git log --pretty=format:"%s" $prevTag..$currentTag > commit_messages.txt
           $commitMessages = Get-Content -Raw commit_messages.txt
           echo "commit_messages=$commitMessages" >> $GITHUB_OUTPUT
-        env:
-          PREV_TAG: ${{ steps.prev_tag.outputs.previous_tag }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
