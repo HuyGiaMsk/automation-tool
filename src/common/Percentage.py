@@ -31,3 +31,6 @@ class Percentage(ABC):
 
     def _get_current_percentage(self) -> float:
         return self.__current_element_count * 100 / self.total_element_size
+
+    def get_percentage_distance(self) -> float:
+        return 100 / self.total_element_size

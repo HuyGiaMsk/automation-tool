@@ -61,7 +61,7 @@ def get_excel_data_in_column_start_at_row(file_path, sheet_name, start_cell) -> 
     column: str = 'A'
     start_row: int = 0
 
-    result = re.search('([a-zA-Z]+)(\d+)', start_cell)
+    result = re.search(r'([a-zA-Z]+)(\d+)', start_cell)
     if result:
         column = result.group(1)
         start_row = int(result.group(2))
@@ -186,25 +186,23 @@ def remove_all_in_folder(folder_path: str,
             r'Deleted all {} in folder {}'.format(file_extension, folder_path))
 
 
-def find_task_module(current_path: str, task_name: str) -> str:
+def find_module(current_path: str, task_name: str) -> str | None:
     for item in os.listdir(current_path):
 
         item_path = os.path.join(current_path, item)
 
         if os.path.isdir(item_path):
-            matched_file = find_task_module(item_path, task_name)
+            matched_file = find_module(item_path, task_name)
             if matched_file is None:
                 continue
 
             return matched_file
 
         if item == f"{task_name}.py":
-            path_parts: list[str] = item_path.replace(os.sep, ".").rsplit(".")
-            path_parts.pop()
+            path_parts: list[str] = item_path.rsplit(os.sep)
 
             is_collecting: bool = False
             real_module_paths: list[str] = []
-
             for part in path_parts:
 
                 if is_collecting:
@@ -216,6 +214,8 @@ def find_task_module(current_path: str, task_name: str) -> str:
                     is_collecting = True
                     continue
 
-            return ".".join(real_module_paths)
+            final_module_path: str = ".".join(real_module_paths)
+            final_module_path = final_module_path[:-3]
+            return final_module_path
 
     return None

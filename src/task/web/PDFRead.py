@@ -8,10 +8,10 @@ from pdfplumber import PDF
 from src.common.ThreadLocalLogger import get_current_logger
 from src.excel_reader_provider import ExcelReaderProvider
 from src.excel_reader_provider.XlwingProvider import XlwingProvider
-from src.task.DesktopAppTask import DesktopAppTask
+from src.task.DesktopTask import DesktopTask
 
 
-class PDFRead(DesktopAppTask):
+class PDFRead(DesktopTask):
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)
 

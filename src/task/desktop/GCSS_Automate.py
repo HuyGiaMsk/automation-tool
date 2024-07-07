@@ -13,10 +13,10 @@ from src.common.StringUtil import extract_row_col_from_cell_pos_format
 from src.common.ThreadLocalLogger import get_current_logger
 from src.excel_reader_provider.ExcelReaderProvider import ExcelReaderProvider
 from src.excel_reader_provider.XlwingProvider import XlwingProvider
-from src.task.DesktopAppTask import DesktopAppTask
+from src.task.DesktopTask import DesktopTask
 
 
-class GCSS_Automate(DesktopAppTask):
+class GCSS_Automate(DesktopTask):
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)

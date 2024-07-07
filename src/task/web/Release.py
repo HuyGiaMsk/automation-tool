@@ -8,10 +8,10 @@ from selenium.webdriver.common.keys import Keys
 
 from src.common.FileUtil import get_excel_data_in_column_start_at_row
 from src.common.ThreadLocalLogger import get_current_logger
-from src.task.WebAppTask import WebAppTask
+from src.task.WebTask import WebTask
 
 
-class Release(WebAppTask):
+class Release(WebTask):
     def getCurrentPercent(self):
         pass
 
