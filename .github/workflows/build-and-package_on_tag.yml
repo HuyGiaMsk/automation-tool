@@ -33,22 +33,22 @@ jobs:
         run: |
           echo "Extracting tag name from GITHUB_REF..."
           $tagName = $env:GITHUB_REF -replace 'refs/tags/', ''
-          echo "tag_version=$tagName" >> $GITHUB_OUTPUT
-
+          Write-Output "::set-output name=tag_version::$tagName"
+          
       - name: Retrieve previous tag
         id: prev_tag
         run: |
           $previousTag = git describe --abbrev=0 --tags ((git rev-list --tags --skip=1 --max-count=1))
-          echo "previous_tag=$previousTag" >> $GITHUB_OUTPUT
+          Write-Output "::set-output name=previous_tag::$previousTag"
 
       - name: Retrieve commit messages in release
         id: commit_messages
         run: |
-          $prevTag = ${{ steps.prev_tag.outputs.previous_tag }}
-          $currentTag = $env:GITHUB_REF -replace 'refs/tags/', ''
-          git log --pretty=format:"%s" $prevTag..$currentTag > commit_messages.txt
+          git log --pretty=format:"%s" $env:PREV_TAG..${env:GITHUB_REF} > commit_messages.txt
           $commitMessages = Get-Content -Raw commit_messages.txt
-          echo "commit_messages=$commitMessages" >> $GITHUB_OUTPUT
+          Write-Output "::set-output name=commit_messages::$commitMessages"
+        env:
+          PREV_TAG: ${{ steps.prev_tag.outputs.previous_tag }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
