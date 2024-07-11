@@ -1,11 +1,11 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-
 a = Analysis(
     ['src/gui/GUIApp.py'],
     pathex=[],
     binaries=[],
     datas=[
+        [".\\venv\\Lib\\site-packages\\autoit\\lib\\AutoItX3_x64.dll", "autoit\\lib"],
         ('input', 'input'),
         ('output', 'output'),
         ('resource', 'resource'),
@@ -23,7 +23,13 @@ a = Analysis(
         'autoit',
         'pdfplumber',
         'PyPDF2',
-
+        "autoit.init",
+        "autoit.autoit",
+        "autoit.control",
+        "autoit.process",
+        "autoit.win",
+        "pyautogui",
+        "pywinauto",
     ],
     hookspath=[],
     hooksconfig={},
@@ -53,4 +59,15 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+)
+
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name='automation_tool',
 )
