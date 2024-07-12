@@ -11,7 +11,7 @@ from openpyxl.cell.cell import Cell
 from openpyxl.workbook.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
-from src.common.Constants import ROOT_DIR
+from src.common.Constants import ROOT_DIR, TASKS_DIR
 from src.common.ResourceLock import ResourceLock
 from src.common.ThreadLocalLogger import get_current_logger
 
@@ -219,3 +219,30 @@ def find_module(current_path: str, task_name: str) -> str | None:
             return final_module_path
 
     return None
+
+
+def get_all_concrete_task_names() -> list[str]:
+    discarded_task_names: set[str] = {"__init__", "AutomatedTask", "DesktopTask", "WebTask"}
+    concrete_task_names: set[str] = get_files_names_in_dir(dir_path=TASKS_DIR, file_extension='.py',
+                                                           excluded_file_names=discarded_task_names)
+    return sorted(list(concrete_task_names))
+
+
+def get_files_names_in_dir(dir_path: str, file_extension: str, excluded_file_names: set[str]) -> set[str]:
+    logger: Logger = get_current_logger()
+
+    if file_extension is None:
+        file_extension = ".py"
+
+    file_names: set[str] = set()
+    for root, _, files in os.walk(dir_path):
+        for file in files:
+            logger.warning(file)
+            if file.lower().endswith(file_extension):
+                clean_name = file.replace(".py", "")
+                file_names.add(clean_name)
+
+    if excluded_file_names is None or excluded_file_names.__len__() == 0:
+        return file_names
+
+    return file_names - excluded_file_names
