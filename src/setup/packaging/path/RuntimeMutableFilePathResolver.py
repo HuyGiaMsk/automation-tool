@@ -1,7 +1,7 @@
 import os
 import sys
 
-from src.common.RestrictCallers import restrict_callers
+from src.common.RestrictCallers import only_accept_callers_from
 from src.setup.packaging.path.PathResolver import PathResolver
 from src.setup.packaging.path.PathResolvingService import PathResolvingService
 
@@ -10,7 +10,7 @@ class RuntimeMutableFilePathResolver(PathResolver):
     __instance = None
 
     @staticmethod
-    @restrict_callers(PathResolvingService)
+    @only_accept_callers_from(PathResolvingService)
     def get_instance() -> PathResolver:
         if RuntimeMutableFilePathResolver.__instance is None:
             RuntimeMutableFilePathResolver.__instance = RuntimeMutableFilePathResolver()
@@ -27,15 +27,13 @@ class RuntimeMutableFilePathResolver(PathResolver):
             return installation_dir
         else:
             # This is for running in an IDE or standard Python interpreter
-            env_path_resolver_path: str = os.path.abspath(__file__)
-            path_dir: str = os.path.dirname(env_path_resolver_path)
-            packing_dir: str = os.path.dirname(path_dir)
-            setup_dir: str = os.path.dirname(packing_dir)
-            src_dir: str = os.path.dirname(setup_dir)
-            root_repo_dir = os.path.dirname(src_dir)
-            return root_repo_dir
+            current_path: str = os.path.abspath(__file__)
+            while not current_path.endswith('automation-tool') or current_path.endswith('automation_tool'):
+                current_path = os.path.dirname(current_path)
+                current_path = current_path.lower()
+            return current_path
 
-    @restrict_callers(PathResolvingService)
+    @only_accept_callers_from(PathResolvingService)
     def resolve(self, paths: list[str]) -> str:
 
         if paths.__len__() == 0:
@@ -53,7 +51,8 @@ class RuntimeMutableFilePathResolver(PathResolver):
             return final_path
 
         if os.path.isfile(final_path):
-            open(final_path).close()
+            with open(final_path, 'w'):
+                pass  # File created, do nothing
             return final_path
 
         raise Exception(

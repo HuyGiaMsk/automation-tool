@@ -1,7 +1,7 @@
 import os
 import sys
 
-from src.common.RestrictCallers import restrict_callers
+from src.common.RestrictCallers import only_accept_callers_from
 from src.setup.packaging.path.PathResolver import PathResolver
 from src.setup.packaging.path.PathResolvingService import PathResolvingService
 
@@ -10,7 +10,7 @@ class InternalImmutableFilePathResolver(PathResolver):
     __instance = None
 
     @staticmethod
-    @restrict_callers(PathResolvingService)
+    @only_accept_callers_from(PathResolvingService)
     def get_instance() -> PathResolver:
         if InternalImmutableFilePathResolver.__instance is None:
             InternalImmutableFilePathResolver.__instance = InternalImmutableFilePathResolver()
@@ -28,15 +28,12 @@ class InternalImmutableFilePathResolver(PathResolver):
 
         except Exception:
             # This is for running in an IDE or standard Python interpreter
-            env_path_resolver_path: str = os.path.abspath(__file__)
-            path_dir: str = os.path.dirname(env_path_resolver_path)
-            packing_dir: str = os.path.dirname(path_dir)
-            setup_dir: str = os.path.dirname(packing_dir)
-            src_dir: str = os.path.dirname(setup_dir)
-            root_repo_dir = os.path.dirname(src_dir)
-            return root_repo_dir
+            current_path: str = os.path.abspath(__file__)
+            while not current_path.endswith('automation-tool'):
+                current_path = os.path.dirname(current_path)
+            return current_path
 
-    @restrict_callers(PathResolvingService)
+    @only_accept_callers_from(PathResolvingService)
     def resolve(self, paths: list[str]) -> str:
 
         if paths.__len__() == 0:
