@@ -16,7 +16,7 @@ from src.observer.Event import Event
 from src.observer.EventBroker import EventBroker
 from src.observer.EventHandler import EventHandler
 from src.observer.PercentChangedEvent import PercentChangedEvent
-from src.setup.packaging.PathResolvingService import PathResolvingService
+from src.setup.packaging.path.PathResolvingService import PathResolvingService, INPUT_DIR
 from src.task.AutomatedTask import AutomatedTask
 
 
@@ -137,8 +137,7 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
         # Create new content based on the selected task
         self.logger.info('Display fields for task {}'.format(selected_task))
 
-        input_dir: str = PathResolvingService.resolve('input')
-        setting_file = os.path.join(input_dir, '{}.properties'.format(selected_task))
+        setting_file = os.path.join(INPUT_DIR, '{}.properties'.format(selected_task))
         if not os.path.exists(setting_file):
             with open(setting_file, 'w'):
                 pass  # File created, do nothing

@@ -1,7 +1,7 @@
 import os
 import sys
 
-from src.setup.packaging.PathResolver import PathResolver
+from src.setup.packaging.path.PathResolver import PathResolver
 
 
 class InternalImmutableFilePathResolver(PathResolver):
@@ -26,7 +26,8 @@ class InternalImmutableFilePathResolver(PathResolver):
         except Exception:
             # This is for running in an IDE or standard Python interpreter
             env_path_resolver_path: str = os.path.abspath(__file__)
-            packing_dir: str = os.path.dirname(env_path_resolver_path)
+            path_dir: str = os.path.dirname(env_path_resolver_path)
+            packing_dir: str = os.path.dirname(path_dir)
             setup_dir: str = os.path.dirname(packing_dir)
             src_dir: str = os.path.dirname(setup_dir)
             root_repo_dir = os.path.dirname(src_dir)

@@ -13,12 +13,11 @@ from openpyxl.worksheet.worksheet import Worksheet
 
 from src.common.ResourceLock import ResourceLock
 from src.common.ThreadLocalLogger import get_current_logger
-from src.setup.packaging.PathResolvingService import PathResolvingService
+from src.setup.packaging.path.PathResolvingService import TASK_DIR, INPUT_DIR
 
 
 def persist_settings_to_file(task_name: str, setting_values: dict[str, str]):
-    input_dir: str = PathResolvingService.resolve('input')
-    file_path: str = os.path.join(input_dir, "{}.properties".format(task_name))
+    file_path: str = os.path.join(INPUT_DIR, "{}.properties".format(task_name))
     with ResourceLock(file_path=file_path):
         with open(file_path, 'w') as file:
             file.truncate(0)
@@ -224,8 +223,7 @@ def find_module(current_path: str, task_name: str) -> str | None:
 
 def get_all_concrete_task_names() -> list[str]:
     discarded_task_names: set[str] = {"__init__", "AutomatedTask", "DesktopTask", "WebTask"}
-    task_dir: str = PathResolvingService.resolve('src', 'task')
-    concrete_task_names: set[str] = get_files_names_in_dir(dir_path=task_dir, file_extension='.py',
+    concrete_task_names: set[str] = get_files_names_in_dir(dir_path=TASK_DIR, file_extension='.py',
                                                            excluded_file_names=discarded_task_names)
     return sorted(list(concrete_task_names))
 

@@ -1,5 +1,5 @@
-from src.setup.packaging.InternalImmutableFilePathResolver import InternalImmutableFilePathResolver
-from src.setup.packaging.RuntimeMutableFilePathResolver import RuntimeMutableFilePathResolver
+from src.setup.packaging.path.InternalImmutableFilePathResolver import InternalImmutableFilePathResolver
+from src.setup.packaging.path.RuntimeMutableFilePathResolver import RuntimeMutableFilePathResolver
 
 
 class PathResolvingService:
@@ -20,5 +20,11 @@ class PathResolvingService:
 
         if PathResolvingService.__internal_immutable_dir_path.__contains__(mandatory_path):
             return InternalImmutableFilePathResolver.get_instance().resolve(processing_paths)
-            
+
         return RuntimeMutableFilePathResolver.get_instance().resolve(processing_paths)
+
+
+TASK_DIR: str = PathResolvingService.resolve('src', 'task')
+INPUT_DIR: str = PathResolvingService.resolve('input')
+OUTPUT_DIR: str = PathResolvingService.resolve('output')
+LOG_DIR: str = PathResolvingService.resolve('log')

@@ -4,10 +4,10 @@ from logging import Logger
 
 from src.common.ResourceLock import ResourceLock
 from src.common.ThreadLocalLogger import get_current_logger
-from src.setup.packaging.PathResolvingService import PathResolvingService
+from src.setup.packaging.path.PathResolvingService import OUTPUT_DIR
 
 if __name__ == "__main__":
-    path = os.path.join(PathResolvingService.resolve('output'), 'temp_file.txt')
+    path = os.path.join(OUTPUT_DIR, 'temp_file.txt')
 
     logger: Logger = get_current_logger()
 
