@@ -25,7 +25,8 @@ AllowNoIcons=yes
 InfoBeforeFile=.\README.md
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputBaseFilename=mysetup
+OutputBaseFilename=automation_tool_installer
+OutputDir=.\dist\
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -38,7 +39,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: ".\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion; BeforeInstall: DeleteAppDir
-Source: ".\resource\img\logo5.png"; DestDir: "{app}"; Flags: ignoreversion
+Source: ".\dist\input\*"; DestDir: "{app}\input"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: ".\dist\script\*"; DestDir: "{app}\script"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Registry]
 Root: HKA; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue

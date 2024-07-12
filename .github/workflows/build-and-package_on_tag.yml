@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -21,12 +22,28 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python -m venv venv
+          call venv\Scripts\activate
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Build executable
         run: |
+          call venv\Scripts\activate
           pyinstaller automation_tool.spec
+          call venv\Scripts\deactivate
+
+      - name: Copy additional folders to dist
+        run: |
+          IF EXIST dist (
+            xcopy input dist\input /E /H /C /I
+            xcopy script dist\script /E /H /C /I
+          )
+
+      - name: Run Inno Setup
+        uses: callebstrom/inno-setup-cli-action@6.2.1
+        with:
+          path: automation_tool.iss
 
       - name: Get tag name
         id: tag_name
@@ -34,21 +51,6 @@ jobs:
           echo "Extracting tag name from GITHUB_REF..."
           $tagName = $env:GITHUB_REF -replace 'refs/tags/', ''
           Write-Output "::set-output name=tag_version::$tagName"
-          
-      - name: Retrieve previous tag
-        id: prev_tag
-        run: |
-          $previousTag = git describe --abbrev=0 --tags ((git rev-list --tags --skip=1 --max-count=1))
-          Write-Output "::set-output name=previous_tag::$previousTag"
-
-      - name: Retrieve commit messages in release
-        id: commit_messages
-        run: |
-          git log --pretty=format:"%s" $env:PREV_TAG..${env:GITHUB_REF} > commit_messages.txt
-          $commitMessages = Get-Content -Raw commit_messages.txt
-          Write-Output "::set-output name=commit_messages::$commitMessages"
-        env:
-          PREV_TAG: ${{ steps.prev_tag.outputs.previous_tag }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -64,7 +66,7 @@ jobs:
         with:
           tag_name: ${{ steps.tag_name.outputs.tag_version }}
           release_name: Release ${{ steps.tag_name.outputs.tag_version }}
-          body_path: commit_messages.txt
+          body: Release version ${{ steps.tag_name.outputs.tag_version }} some update to enhance the quality
 
       - name: Upload Release Asset
         id: upload-release-asset
@@ -73,6 +75,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/automation_tool.exe
-          asset_name: automation_tool_${{ steps.tag_name.outputs.tag_version }}.exe
+          asset_path: dist/automation_tool_installer.exe
+          asset_name: automation_tool_installer_${{ steps.tag_name.outputs.tag_version }}.exe
           asset_content_type: application/octet-stream
