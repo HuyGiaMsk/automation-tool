@@ -35,20 +35,20 @@ jobs:
 
       - name: Copy additional folders to dist
         run: |
-          IF EXIST dist (
-            xcopy input dist\input /E /H /C /I
-            xcopy script dist\script /E /H /C /I
-          )
+          if (Test-Path -Path "dist") {
+              # Actions to perform if 'dist' directory exists
+              Copy-Item -Path "input" -Destination "dist\input" -Recurse -Force
+              Copy-Item -Path "script" -Destination "dist\script" -Recurse -Force
+          }
 
       - name: Run Inno Setup
-        uses: callebstrom/inno-setup-cli-action@6.2.1
+        uses: callebstrom/inno-setup-cli-action@v6.2.1
         with:
           path: automation_tool.iss
 
       - name: Get tag name
         id: tag_name
         run: |
-          echo "Extracting tag name from GITHUB_REF..."
           $tagName = $env:GITHUB_REF -replace 'refs/tags/', ''
           Write-Output "::set-output name=tag_version::$tagName"
 
