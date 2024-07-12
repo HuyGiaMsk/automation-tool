@@ -41,10 +41,11 @@ jobs:
               Copy-Item -Path "script" -Destination "dist\script" -Recurse -Force
           }
 
-      - name: Run Inno Setup
-        uses: callebstrom/inno-setup-cli-action@v6.2.1
+      - name: Run Inno Setup to create the installer
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
           path: automation_tool.iss
+          options: /O+
 
       - name: Get tag name
         id: tag_name
