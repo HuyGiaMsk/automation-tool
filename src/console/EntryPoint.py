@@ -3,16 +3,16 @@ import threading
 from logging import Logger
 from threading import Thread
 
-from src.common.Constants import ROOT_DIR
 from src.common.FileUtil import load_key_value_from_file_properties
 from src.common.ReflectionUtil import create_task_instance
 from src.common.StringUtil import validate_keys_of_dictionary
 from src.common.ThreadLocalLogger import get_current_logger
+from src.setup.packaging.PathResolvingService import PathResolvingService
 from src.task.AutomatedTask import AutomatedTask
 
 if __name__ == "__main__":
-
-    setting_file: str = os.path.join(ROOT_DIR, 'input', 'InvokedClasses.properties')
+    input_dir = PathResolvingService.resolve('input')
+    setting_file: str = os.path.join(input_dir, 'InvokedClasses.properties')
     settings: dict[str, str] = load_key_value_from_file_properties(setting_file)
     validate_keys_of_dictionary(settings, {'invoked_classes', 'run.sequentially'})
     defined_classes: list[str] = [class_name.strip() for class_name in settings['invoked_classes'].split(',')]
@@ -24,7 +24,7 @@ if __name__ == "__main__":
         logger: Logger = get_current_logger()
         logger.info('Invoking class {}'.format(invoked_class))
 
-        setting_file = os.path.join(ROOT_DIR, 'input', '{}.properties'.format(invoked_class))
+        setting_file = os.path.join(input_dir, '{}.properties'.format(invoked_class))
         settings: dict[str, str] = load_key_value_from_file_properties(setting_file)
         settings['invoked_class'] = invoked_class
         automated_task: AutomatedTask = create_task_instance(settings, invoked_class, None)

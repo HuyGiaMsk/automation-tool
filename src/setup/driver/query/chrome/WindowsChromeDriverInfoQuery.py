@@ -25,5 +25,10 @@ class WindowsChromeDriverInfoQuery(ChromeDriverInfoQuery):
                 base_number_version = tokens[0]
                 break
 
+        if base_number_version == '':
+            message: str = f'Error retrieving Chrome version'
+            logger.error(message)
+            raise Exception(message)
+
         logger.info('Local machine chrome version used is {}'.format(base_number_version))
         return base_number_version

@@ -7,7 +7,6 @@ from typing import Callable
 
 from selenium.webdriver.common.by import By
 
-from src.common.Constants import ZIP_EXTENSION
 from src.common.FileUtil import get_excel_data_in_column_start_at_row, extract_zip, \
     check_parent_folder_contain_all_required_sub_folders, remove_all_in_folder
 from src.common.StringUtil import join_set_of_elements
@@ -117,7 +116,7 @@ class Download_Blx(WebTask):
         except:
             self._click_when_element_present(by=By.LINK_TEXT, value='{}.zip'.format(bill))
             logger.info('get bill not revised')
-            full_file_path: str = os.path.join(self._download_folder, bill + ZIP_EXTENSION)
+            full_file_path: str = os.path.join(self._download_folder, bill + '.zip')
 
         self._wait_download_file_complete(full_file_path)
         extract_zip_task = threading.Thread(target=extract_zip,

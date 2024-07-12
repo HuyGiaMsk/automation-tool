@@ -23,7 +23,8 @@ class LinuxChromeDriverInfoQuery(ChromeDriverInfoQuery):
 
             logger.info('Local machine chrome version used is {}'.format(base_number_version))
         except Exception as e:
-            logger.error(f'Error retrieving Chrome version: {e}')
+            message: str = f'Error retrieving Chrome version: {e}'
+            logger.error(message)
+            raise Exception(message)
 
-        logger.info('Local machine chrome version used is {}'.format(base_number_version))
         return base_number_version

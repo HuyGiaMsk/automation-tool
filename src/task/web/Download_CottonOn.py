@@ -9,7 +9,6 @@ from typing import Callable
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
-from src.common.Constants import ZIP_EXTENSION
 from src.common.FileUtil import get_excel_data_in_column_start_at_row, extract_zip, \
     remove_all_in_folder
 from src.common.ResourceLock import ResourceLock
@@ -164,7 +163,7 @@ class Download_CottonOn(WebTask):
         self._click_when_element_present(by=By.CSS_SELECTOR, value='div[data-cy=shipment-documents-box] '
                                                                    'div:nth-child(2) button')
 
-        full_file_path: str = os.path.join(self._download_folder, booking + ZIP_EXTENSION)
+        full_file_path: str = os.path.join(self._download_folder, booking + '.zip')
         self._wait_download_file_complete(full_file_path)
         extract_zip_task = threading.Thread(target=extract_zip,
                                             args=(full_file_path, self._download_folder,

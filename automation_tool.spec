@@ -5,13 +5,9 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        [".\\venv\\Lib\\site-packages\\autoit\\lib\\AutoItX3_x64.dll", "autoit\\lib"],
-        ('input', 'input'),
-        ('output', 'output'),
+        (".\\venv\\Lib\\site-packages\\autoit\\lib\\AutoItX3_x64.dll", "autoit\\lib"),
         ('resource', 'resource'),
-        ('script', 'script'),
-        ('src', 'src'),
-        ('test', 'test')
+        ('src', 'src')
     ],
     hiddenimports=[
         'selenium.webdriver.chrome',

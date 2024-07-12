@@ -5,7 +5,6 @@ from tkinter import Label, Frame, Text, HORIZONTAL, ttk, messagebox, Button
 from tkinter.ttk import Combobox, Progressbar, Style
 from typing import Tuple
 
-from src.common.Constants import ROOT_DIR
 from src.common.FileUtil import load_key_value_from_file_properties, persist_settings_to_file, \
     get_all_concrete_task_names
 from src.common.ReflectionUtil import create_task_instance
@@ -17,6 +16,7 @@ from src.observer.Event import Event
 from src.observer.EventBroker import EventBroker
 from src.observer.EventHandler import EventHandler
 from src.observer.PercentChangedEvent import PercentChangedEvent
+from src.setup.packaging.PathResolvingService import PathResolvingService
 from src.task.AutomatedTask import AutomatedTask
 
 
@@ -49,7 +49,8 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
         whole_app_frame = tk.Frame(self, bg="#FFFFFF")
         whole_app_frame.pack()
 
-        self.logo_image: tk.PhotoImage = tk.PhotoImage(file=os.path.join(ROOT_DIR, "resource/img/logo5.png"))
+        resource_dir = PathResolvingService.resolve('resource')
+        self.logo_image: tk.PhotoImage = tk.PhotoImage(file=os.path.join(resource_dir, "img", "logo5.png"))
 
         self.render_header(parent_frame=whole_app_frame, logo=self.logo_image)
 
@@ -136,7 +137,8 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
         # Create new content based on the selected task
         self.logger.info('Display fields for task {}'.format(selected_task))
 
-        setting_file = os.path.join(ROOT_DIR, 'input', '{}.properties'.format(selected_task))
+        input_dir: str = PathResolvingService.resolve('input')
+        setting_file = os.path.join(input_dir, '{}.properties'.format(selected_task))
         if not os.path.exists(setting_file):
             with open(setting_file, 'w'):
                 pass  # File created, do nothing
