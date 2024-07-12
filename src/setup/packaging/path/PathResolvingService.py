@@ -50,5 +50,5 @@ class PathResolvingService:
 
     def get_log_dir(self):
         if self.__log_dir is None:
-            self.__log_dir = self.resolve('output')
+            self.__log_dir = self.resolve('log')
         return self.__log_dir

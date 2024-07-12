@@ -27,11 +27,11 @@ class RuntimeMutableFilePathResolver(PathResolver):
             return installation_dir
         else:
             # This is for running in an IDE or standard Python interpreter
-            current_path: str = os.path.abspath(__file__)
-            while not current_path.endswith('automation-tool') or current_path.endswith('automation_tool'):
-                current_path = os.path.dirname(current_path)
-                current_path = current_path.lower()
-            return current_path
+            root_dir: str = os.path.abspath(__file__)
+            while not root_dir.endswith('automation-tool') or root_dir.endswith('automation_tool'):
+                root_dir = os.path.dirname(root_dir)
+                root_dir = root_dir.lower()
+            return root_dir
 
     @only_accept_callers_from(PathResolvingService)
     def resolve(self, paths: list[str]) -> str:
@@ -46,14 +46,10 @@ class RuntimeMutableFilePathResolver(PathResolver):
         if os.path.exists(final_path):
             return final_path
 
-        if os.path.isdir(final_path):
-            os.mkdir(final_path)
-            return final_path
-
-        if os.path.isfile(final_path):
+        if final_path.__contains__('.'):
             with open(final_path, 'w'):
                 pass  # File created, do nothing
             return final_path
 
-        raise Exception(
-            f'Something went wrong with {final_path} - No file/dir exist and could not create a new file/dir for it')
+        os.mkdir(final_path)
+        return final_path

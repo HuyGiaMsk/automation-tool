@@ -24,14 +24,16 @@ class InternalImmutableFilePathResolver(PathResolver):
         try:
             # inside the packaged executable file of Pyinstaller
             # _MEIPASS will be set at runtime, just discard the warning
-            return sys._MEIPASS
+            temporary_internal_exe_location: str = sys._MEIPASS
+            return temporary_internal_exe_location
 
         except Exception:
             # This is for running in an IDE or standard Python interpreter
-            current_path: str = os.path.abspath(__file__)
-            while not current_path.endswith('automation-tool'):
-                current_path = os.path.dirname(current_path)
-            return current_path
+            root_dir: str = os.path.abspath(__file__)
+            while not root_dir.endswith('automation-tool'):
+                root_dir = os.path.dirname(root_dir)
+
+            return root_dir
 
     @only_accept_callers_from(PathResolvingService)
     def resolve(self, paths: list[str]) -> str:

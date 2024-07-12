@@ -1,32 +1,34 @@
 # -*- mode: python ; coding: utf-8 -*-
+import platform
+platform_name = platform.system()
+
+our_datas = [('resource', 'resource'), ('src', 'src')]
+our_hidden_imports = [  'selenium.webdriver.chrome',
+                        'selenium.webdriver.support.expected_conditions',
+                        'selenium.webdriver.support.wait',
+                        'requests',
+                        'wget',
+                        'xlwings',
+                        'autoit',
+                        'pdfplumber',
+                        'PyPDF2',
+                        "autoit.init",
+                        "autoit.autoit",
+                        "autoit.control",
+                        "autoit.process",
+                        "autoit.win",
+                        "pyautogui"     ]
+
+if platform_name == 'Windows':
+    our_datas.append((".\\venv\\Lib\\site-packages\\autoit\\lib\\AutoItX3_x64.dll", "autoit\\lib"))
+    our_hidden_imports.append("pywinauto")
 
 a = Analysis(
     ['src/gui/GUIApp.py'],
     pathex=[],
     binaries=[],
-    datas=[
-        (".\\venv\\Lib\\site-packages\\autoit\\lib\\AutoItX3_x64.dll", "autoit\\lib"),
-        ('resource', 'resource'),
-        ('src', 'src')
-    ],
-    hiddenimports=[
-        'selenium.webdriver.chrome',
-        'selenium.webdriver.support.expected_conditions',
-        'selenium.webdriver.support.wait',
-        'requests',
-        'wget',
-        'xlwings',
-        'autoit',
-        'pdfplumber',
-        'PyPDF2',
-        "autoit.init",
-        "autoit.autoit",
-        "autoit.control",
-        "autoit.process",
-        "autoit.win",
-        "pyautogui",
-        "pywinauto",
-    ],
+    datas=our_datas,
+    hiddenimports=our_hidden_imports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -55,15 +57,4 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-)
-
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    name='automation_tool',
 )
