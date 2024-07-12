@@ -1,13 +1,16 @@
 import os
 import sys
 
+from src.common.RestrictCallers import restrict_callers
 from src.setup.packaging.path.PathResolver import PathResolver
+from src.setup.packaging.path.PathResolvingService import PathResolvingService
 
 
 class InternalImmutableFilePathResolver(PathResolver):
     __instance = None
 
     @staticmethod
+    @restrict_callers(PathResolvingService)
     def get_instance() -> PathResolver:
         if InternalImmutableFilePathResolver.__instance is None:
             InternalImmutableFilePathResolver.__instance = InternalImmutableFilePathResolver()
@@ -33,6 +36,7 @@ class InternalImmutableFilePathResolver(PathResolver):
             root_repo_dir = os.path.dirname(src_dir)
             return root_repo_dir
 
+    @restrict_callers(PathResolvingService)
     def resolve(self, paths: list[str]) -> str:
 
         if paths.__len__() == 0:

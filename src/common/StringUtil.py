@@ -6,7 +6,7 @@ from typing import Tuple
 
 from src.common.ResourceLock import ResourceLock
 from src.common.ThreadLocalLogger import get_current_logger
-from src.setup.packaging.path.PathResolvingService import OUTPUT_DIR
+from src.setup.packaging.path.PathResolvingService import PathResolvingService
 
 
 def validate_keys_of_dictionary(settings: dict[str, str],
@@ -46,7 +46,7 @@ def decode_url(url: str) -> str:
 
 
 def escape_bat_file_special_chars(input_file: str = '.\\Downloadsrc.py',
-                                  output_file: str = os.path.join(OUTPUT_DIR,
+                                  output_file: str = os.path.join(PathResolvingService.get_instance().get_output_dir(),
                                                                   'EscapedCharsEmbeddedPythonToBat.output')) -> None:
     if not os.path.exists(input_file):
         raise Exception('invalid input')

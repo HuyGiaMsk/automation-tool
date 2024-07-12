@@ -11,7 +11,7 @@ from src.setup.driver.download.DownloadDriver import DownloadDriver
 from src.setup.driver.query.DriverInfoQuery import DriverInfoQuery
 from src.setup.packaging.path.PathResolvingService import PathResolvingService
 
-PATH_TO_DRIVER = PathResolvingService.resolve('chrome_driver')
+PATH_TO_DRIVER = PathResolvingService.get_instance().resolve('chrome_driver')
 PREFIX_DRIVER_NAME = 'chromedriver-'
 
 

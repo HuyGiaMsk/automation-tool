@@ -16,7 +16,7 @@ from src.observer.Event import Event
 from src.observer.EventBroker import EventBroker
 from src.observer.EventHandler import EventHandler
 from src.observer.PercentChangedEvent import PercentChangedEvent
-from src.setup.packaging.path.PathResolvingService import PathResolvingService, INPUT_DIR
+from src.setup.packaging.path.PathResolvingService import PathResolvingService
 from src.task.AutomatedTask import AutomatedTask
 
 
@@ -49,7 +49,7 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
         whole_app_frame = tk.Frame(self, bg="#FFFFFF")
         whole_app_frame.pack()
 
-        resource_dir = PathResolvingService.resolve('resource')
+        resource_dir = PathResolvingService.get_instance().resolve('resource')
         self.logo_image: tk.PhotoImage = tk.PhotoImage(file=os.path.join(resource_dir, "img", "logo5.png"))
 
         self.render_header(parent_frame=whole_app_frame, logo=self.logo_image)
@@ -137,7 +137,8 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
         # Create new content based on the selected task
         self.logger.info('Display fields for task {}'.format(selected_task))
 
-        setting_file = os.path.join(INPUT_DIR, '{}.properties'.format(selected_task))
+        setting_file = os.path.join(PathResolvingService.get_instance().get_input_dir(),
+                                    '{}.properties'.format(selected_task))
         if not os.path.exists(setting_file):
             with open(setting_file, 'w'):
                 pass  # File created, do nothing

@@ -6,7 +6,7 @@ from logging import Logger, FileHandler, StreamHandler, Formatter
 from logging.handlers import RotatingFileHandler
 from typing import TextIO
 
-from src.setup.packaging.path.PathResolvingService import LOG_DIR
+from src.setup.packaging.path.PathResolvingService import PathResolvingService
 
 thread_local_logger = threading.local()
 
@@ -36,7 +36,8 @@ def create_logger(class_name: str, thread_uuid: str, logging_console_level: int 
     class_name: str = os.path.splitext(os.path.basename(class_name))[0]
     created_logger: Logger = logging.getLogger(class_name)
 
-    file_handler: FileHandler = RotatingFileHandler(filename=os.path.join(LOG_DIR, '{}.log'.format(class_name)),
+    log_dir: str = PathResolvingService.get_instance().get_log_dir()
+    file_handler: FileHandler = RotatingFileHandler(filename=os.path.join(log_dir, '{}.log'.format(class_name)),
                                                     maxBytes=1024 * 1000 * 10,
                                                     backupCount=3)
     file_handler.setLevel(logging.INFO)
