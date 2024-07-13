@@ -38,7 +38,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion; BeforeInstall: DeleteAppDir
+Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion;
 Source: "dist\input\*"; DestDir: "{app}\input"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "dist\script\*"; DestDir: "{app}\script"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "dist\release_notes\*"; DestDir: "{app}\release_notes"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -57,14 +57,3 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-
-[Code]
-procedure DeleteAppDir();
-var
-  ErrorCode: Integer;
-begin
-  if DirExists(ExpandConstant('{app}')) then
-  begin
-    DelTree(ExpandConstant('{app}'), True, True, True);
-  end;
-end;
