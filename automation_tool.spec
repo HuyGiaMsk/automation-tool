@@ -20,7 +20,7 @@ our_hidden_imports = [  'selenium.webdriver.chrome',
                         "pyautogui"     ]
 
 if platform_name == 'Windows':
-    our_datas.append((".\\venv\\Lib\\site-packages\\autoit\\lib\\AutoItX3_x64.dll", "autoit\\lib"))
+    our_datas.append(("venv\\Lib\\site-packages\\autoit\\lib\\AutoItX3_x64.dll", "autoit\\lib"))
     our_hidden_imports.append("pywinauto")
 
 a = Analysis(
