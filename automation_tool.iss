@@ -16,7 +16,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={pf}\{#MyAppName}
+DefaultDirName={autopf}\{#MyAppName}
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 ChangesAssociations=yes
@@ -39,9 +39,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion;
-Source: "dist\input\*"; DestDir: "{app}\input"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "dist\script\*"; DestDir: "{app}\script"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "dist\release_notes\*"; DestDir: "{app}\release_notes"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\input\*"; DestDir: "{app}\input"; Flags: ignoreversion;
+Source: "dist\script\*"; DestDir: "{app}\script"; Flags: ignoreversion;
+Source: "dist\release_notes\*"; DestDir: "{app}\release_notes"; Flags: ignoreversion;
 
 [Registry]
 Root: HKA; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue
