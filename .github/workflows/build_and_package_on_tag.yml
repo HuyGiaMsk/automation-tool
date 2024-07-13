@@ -1,0 +1,114 @@
+name: Build and Package on Windows
+run-name: ${{ github.actor }} try to build and package the Automation Tool per release
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Create release
+    runs-on: windows-latest
+    permissions: write-all
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          cmd /c call venv\Scripts\activate
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build executable
+        run: |
+          cmd /c call venv\Scripts\activate
+          pyinstaller automation_tool.spec
+          cmd /c call venv\Scripts\deactivate
+
+      - name: Copy additional folders to dist
+        run: |
+          if exist dist (
+              xcopy input dist\input /E /H /C /I
+              xcopy script dist\script /E /H /C /I
+              xcopy script dist\release_notes /E /H /C /I
+          )
+        shell: cmd
+
+      - name: List files in dist directory
+        run: |
+          echo "Listing files in dist directory:"
+          dir dist
+        shell: cmd
+
+      - name: Run Inno Setup to create the installer
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        with:
+          path: automation_tool.iss
+          options: /O+
+
+      - name: Get tag name
+        id: tag_name
+        run: |
+          $tagName = $env:GITHUB_REF -replace 'refs/tags/', ''
+          Write-Output "::set-output name=tag_version::$tagName"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: automation_tool_${{ steps.tag_name.outputs.tag_version }}
+          path: dist/automation_tool.exe
+
+      - name: Determine Release Notes File
+        id: determine_release_notes
+        run: |
+          if [ -z "${{ steps.tag_name.outputs.tag_version }}" ]; then
+            notes_file="release_notes/default_rn.txt"
+          else
+            notes_file="release_notes/${{ steps.tag_name.outputs.tag_version }}.txt"
+            if [ ! -f "$notes_file" ]; then
+              notes_file="release_notes/default_rn.txt"
+            fi
+          fi
+          echo "::set-output name=notes_file::$notes_file"
+        shell: bash
+
+      - name: Read Release Notes
+        id: read_release_notes
+        run: |
+          notes_file="${{ steps.determine_release_notes.outputs.notes_file }}"
+          if [ -f "$notes_file" ]; then
+            notes=$(cat "$notes_file")
+          else
+            notes=""
+          fi
+          echo "::set-output name=release_notes::$notes"
+        shell: bash
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag_name.outputs.tag_version }}
+          release_name: Release ${{ steps.tag_name.outputs.tag_version }}
+          body: ${{ steps.read_release_notes.outputs.release_notes }}
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/automation_tool_installer.exe
+          asset_name: automation_tool_installer_${{ steps.tag_name.outputs.tag_version }}.exe
+          asset_content_type: application/octet-stream

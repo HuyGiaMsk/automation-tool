@@ -1,30 +1,27 @@
 # -*- mode: python ; coding: utf-8 -*-
+import platform
+platform_name = platform.system()
 
+our_datas = [('resource', 'resource'), ('src', 'src')]
+our_hidden_imports = [  'selenium.webdriver.chrome',
+                        'selenium.webdriver.support.expected_conditions',
+                        'selenium.webdriver.support.wait',
+                        'requests',
+                        'wget',
+                        'xlwings',
+                        'pdfplumber',
+                        'PyPDF2',
+                        "pyautogui"     ]
+
+if platform_name == 'Windows':
+    our_hidden_imports.append("pywinauto")
 
 a = Analysis(
     ['src/gui/GUIApp.py'],
     pathex=[],
     binaries=[],
-    datas=[
-        ('input', 'input'),
-        ('output', 'output'),
-        ('resource', 'resource'),
-        ('script', 'script'),
-        ('src', 'src'),
-        ('test', 'test')
-    ],
-    hiddenimports=[
-        'selenium.webdriver.chrome',
-        'selenium.webdriver.support.expected_conditions',
-        'selenium.webdriver.support.wait',
-        'requests',
-        'wget',
-        'xlwings',
-        'autoit',
-        'pdfplumber',
-        'PyPDF2',
-
-    ],
+    datas=our_datas,
+    hiddenimports=our_hidden_imports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

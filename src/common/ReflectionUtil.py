@@ -1,10 +1,9 @@
 import importlib
-import os
 from types import ModuleType
 from typing import Callable
 
-from src.common.Constants import SOURCE_DIR
 from src.common.FileUtil import find_module
+from src.setup.packaging.path.PathResolvingService import PathResolvingService
 from src.task.AutomatedTask import AutomatedTask
 
 cache: dict[str, ModuleType] = {}
@@ -17,8 +16,7 @@ def create_task_instance(setting_states: dict[str, str], task_name: str,
         automated_task: AutomatedTask = clazz(setting_states, callback_before_run_task)
         return automated_task
 
-    base_path: str = os.path.join(SOURCE_DIR, 'task')
-    module_path = find_module(base_path, task_name)
+    module_path = find_module(PathResolvingService.get_instance().get_task_dir(), task_name)
     if module_path is None:
         raise FileNotFoundError(f"Task file {task_name}.py not found in {module_path} and its subdirectories.")
 

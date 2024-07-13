@@ -60,21 +60,7 @@ class Duty(WebTask):
 
         batch_index: int = 0
         quantity_of_batches: int = len(download_filter_cookies)
-
-        self.current_element_count = 0
-        self.total_element_size = len(fcr_numbers)
         while batch_index < quantity_of_batches:
-
-            if self.terminated is True:
-                return
-
-            with self.pause_condition:
-
-                while self.paused:
-                    self.pause_condition.wait()
-
-                if self.terminated is True:
-                    return
 
             try_count = 1
             try:
@@ -125,7 +111,6 @@ class Duty(WebTask):
                 self._rename_file_after_download(fcr_code, fcr_index)
 
             batch_index += 1
-            self.current_element_count = self.current_element_count + 1
 
         logger.info("Complete download")
         self._input_excel()

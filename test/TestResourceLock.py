@@ -2,14 +2,15 @@ import os
 import threading
 from logging import Logger
 
-from src.common.Constants import ROOT_DIR
 from src.common.ResourceLock import ResourceLock
 from src.common.ThreadLocalLogger import get_current_logger
+from src.setup.packaging.path.PathResolvingService import PathResolvingService
 
 if __name__ == "__main__":
-    path = os.path.join(ROOT_DIR, 'output', 'temp_file.txt')
+    path = os.path.join(PathResolvingService.get_instance().get_output_dir(), 'temp_file.txt')
 
     logger: Logger = get_current_logger()
+
 
     def write_lines(line, repeat=10):
         global logger  # Use the shared logger

@@ -1,0 +1,6 @@
+Enhance code quality and fix potential bugs.
+Package the repository and create an installer for each tag push.
+Implement a Path Resolving Service for searching paths both inside the executable file and in a development IDE env.
+Separate the task directory into subdirectories such as desktop, web, and arbitrary.
+Implement a mechanism for querying and downloading ChromeDriver for both Linux and Windows envs.
+Implement a decorator to restrict access to certain methods for specified callers.

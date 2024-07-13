@@ -5,8 +5,8 @@ from tkinter import Label, Frame, Text, HORIZONTAL, ttk, messagebox, Button
 from tkinter.ttk import Combobox, Progressbar, Style
 from typing import Tuple
 
-from src.common.Constants import ROOT_DIR
-from src.common.FileUtil import load_key_value_from_file_properties, persist_settings_to_file
+from src.common.FileUtil import load_key_value_from_file_properties, persist_settings_to_file, \
+    get_all_concrete_task_names
 from src.common.ReflectionUtil import create_task_instance
 from src.common.ThreadLocalLogger import get_current_logger
 from src.gui.TextBoxLoggingHandler import setup_textbox_logger
@@ -16,6 +16,7 @@ from src.observer.Event import Event
 from src.observer.EventBroker import EventBroker
 from src.observer.EventHandler import EventHandler
 from src.observer.PercentChangedEvent import PercentChangedEvent
+from src.setup.packaging.path.PathResolvingService import PathResolvingService
 from src.task.AutomatedTask import AutomatedTask
 
 
@@ -48,7 +49,8 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
         whole_app_frame = tk.Frame(self, bg="#FFFFFF")
         whole_app_frame.pack()
 
-        self.logo_image: tk.PhotoImage = tk.PhotoImage(file=os.path.join(ROOT_DIR, "resource/img/logo5.png"))
+        resource_dir = PathResolvingService.get_instance().resolve('resource')
+        self.logo_image: tk.PhotoImage = tk.PhotoImage(file=os.path.join(resource_dir, "img", "logo5.png"))
 
         self.render_header(parent_frame=whole_app_frame, logo=self.logo_image)
 
@@ -92,7 +94,7 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
                 return
 
             distance_between_ui_percent_n_event_percent: float = (
-                        event.current_percent - float(self.progress_bar['value']))
+                    event.current_percent - float(self.progress_bar['value']))
             default_distance_of_task: float = self.automated_task.get_percentage_distance()
             if distance_between_ui_percent_n_event_percent > default_distance_of_task:
                 return
@@ -117,27 +119,8 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
                                             background='#FB3D52', foreground='#FFFFFF')
         tasks_dropdown.pack(padx=10, pady=10)
         tasks_dropdown.bind("<<ComboboxSelected>>", self.handle_tasks_dropdown)
-        self.populate_task_dropdown(tasks_dropdown)
+        tasks_dropdown['values'] = get_all_concrete_task_names()
         return tasks_dropdown
-
-    # Find all available defined tasks and populate these as values of a dropdown
-    def populate_task_dropdown(self, dropdown: Combobox):
-        logger: Logger = get_current_logger()
-        tasks_dir: str = os.path.join(ROOT_DIR, 'src', 'task')
-        automated_task_names: set[str] = {"__init__"}
-
-        for root, _, files in os.walk(tasks_dir):
-            for file in files:
-                logger.warning(file)
-                if file.lower().endswith(".py"):
-                    clean_name = file.replace(".py", "")
-                    automated_task_names.add(clean_name)
-
-        automated_task_names.remove("AutomatedTask")
-        automated_task_names.remove("DesktopTask")
-        automated_task_names.remove("WebTask")
-        automated_task_names.remove("__init__")
-        dropdown['values'] = sorted(list(automated_task_names))
 
     def handle_tasks_dropdown(self, event):
         if self.current_task_name is not None and self.current_task_settings is not None:
@@ -154,7 +137,8 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
         # Create new content based on the selected task
         self.logger.info('Display fields for task {}'.format(selected_task))
 
-        setting_file = os.path.join(ROOT_DIR, 'input', '{}.properties'.format(selected_task))
+        setting_file = os.path.join(PathResolvingService.get_instance().get_input_dir(),
+                                    '{}.properties'.format(selected_task))
         if not os.path.exists(setting_file):
             with open(setting_file, 'w'):
                 pass  # File created, do nothing

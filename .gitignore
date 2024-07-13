@@ -164,3 +164,4 @@ chrome_driver/
 input/*.xlsm
 input/*.xlsx
 input/*.xls
+output/*.exe

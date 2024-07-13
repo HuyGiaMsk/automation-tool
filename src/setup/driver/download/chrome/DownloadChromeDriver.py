@@ -5,13 +5,13 @@ from logging import Logger
 
 import wget
 
-from src.common.Constants import ROOT_DIR
 from src.common.FileUtil import remove_all_in_folder
 from src.common.ThreadLocalLogger import get_current_logger
 from src.setup.driver.download.DownloadDriver import DownloadDriver
 from src.setup.driver.query.DriverInfoQuery import DriverInfoQuery
+from src.setup.packaging.path.PathResolvingService import PathResolvingService
 
-PATH_TO_DRIVER = os.path.join(ROOT_DIR, 'chrome_driver')
+PATH_TO_DRIVER = PathResolvingService.get_instance().resolve('chrome_driver')
 PREFIX_DRIVER_NAME = 'chromedriver-'
 
 
