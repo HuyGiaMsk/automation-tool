@@ -31,13 +31,13 @@ jobs:
         run: |
           cmd /c call venv\Scripts\activate
           pyinstaller automation_tool.spec
-          cmd /c call venv\Scripts\deactivate
 
       - name: Copy additional folders to dist
         run: |
           if exist dist (
               xcopy input dist\input /E /H /C /I
               xcopy script dist\script /E /H /C /I
+              xcopy script dist\release_notes /E /H /C /I
           )
         shell: cmd
 
