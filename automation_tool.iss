@@ -23,7 +23,7 @@ ChangesAssociations=yes
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 InfoBeforeFile=README.md
-PrivilegesRequired=lowest
+PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=dialog
 OutputBaseFilename=automation_tool_installer
 OutputDir=dist\
@@ -38,10 +38,11 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion; BeforeInstall: DeleteAppDir
-Source: "dist\input\*"; DestDir: "{app}\input"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "dist\script\*"; DestDir: "{app}\script"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "dist\release_notes\*"; DestDir: "{app}\release_notes"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion;
+Source: "dist\input\*"; DestDir: "{app}\input"; Flags: ignoreversion;
+Source: "dist\output\*"; DestDir: "{app}\output"; Flags: ignoreversion;
+Source: "dist\script\*"; DestDir: "{app}\script"; Flags: ignoreversion;
+Source: "dist\release_notes\*"; DestDir: "{app}\release_notes"; Flags: ignoreversion;
 
 [Registry]
 Root: HKA; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue
@@ -57,14 +58,3 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-
-[Code]
-procedure DeleteAppDir();
-var
-  ErrorCode: Integer;
-begin
-  if DirExists(ExpandConstant('{app}')) then
-  begin
-    DelTree(ExpandConstant('{app}'), True, True, True);
-  end;
-end;

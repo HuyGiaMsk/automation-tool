@@ -16,7 +16,7 @@ pip install -r requirements.txt
 pyinstaller automation_tool.spec
 
 if [ -d dist ]; then
-  cp -r input script release_notes dist/
+  cp -r input output script release_notes dist/
 fi
 
 deactivate

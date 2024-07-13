@@ -28,7 +28,7 @@ class RuntimeMutableFilePathResolver(PathResolver):
         else:
             # This is for running in an IDE or standard Python interpreter
             root_dir: str = os.path.abspath(__file__)
-            while not root_dir.endswith('automation-tool') or root_dir.endswith('automation_tool'):
+            while not (root_dir.endswith('automation-tool') or root_dir.endswith('automation_tool')):
                 root_dir = os.path.dirname(root_dir)
                 root_dir = root_dir.lower()
             return root_dir

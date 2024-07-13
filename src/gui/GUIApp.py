@@ -16,6 +16,7 @@ from src.observer.Event import Event
 from src.observer.EventBroker import EventBroker
 from src.observer.EventHandler import EventHandler
 from src.observer.PercentChangedEvent import PercentChangedEvent
+from src.setup.packaging.admin.ValidateAdminPrivilege import validate_admin_privilege
 from src.setup.packaging.path.PathResolvingService import PathResolvingService
 from src.task.AutomatedTask import AutomatedTask
 
@@ -284,5 +285,6 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
 
 
 if __name__ == "__main__":
+    validate_admin_privilege()
     app = GUIApp()
     app.mainloop()

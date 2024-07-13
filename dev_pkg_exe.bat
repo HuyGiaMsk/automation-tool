@@ -17,6 +17,7 @@ pyinstaller automation_tool.spec
 
 IF EXIST dist (
     xcopy input dist\input /E /H /C /I
+    xcopy output dist\output /E /H /C /I
     xcopy script dist\script /E /H /C /I
     xcopy script dist\release_notes /E /H /C /I
 )

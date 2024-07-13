@@ -37,6 +37,7 @@ jobs:
         run: |
           if exist dist (
               xcopy input dist\input /E /H /C /I
+              xcopy output dist\output /E /H /C /I
               xcopy script dist\script /E /H /C /I
               xcopy script dist\release_notes /E /H /C /I
           )
@@ -100,7 +101,7 @@ jobs:
         with:
           tag_name: ${{ steps.tag_name.outputs.tag_version }}
           release_name: Release ${{ steps.tag_name.outputs.tag_version }}
-          body: ${{ steps.read_release_notes.outputs.release_notes }}
+          body_path: ${{ steps.determine_release_notes.outputs.notes_file }}
 
       - name: Upload Release Asset
         id: upload-release-asset
