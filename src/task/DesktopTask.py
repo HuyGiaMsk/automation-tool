@@ -2,7 +2,6 @@ from abc import ABC
 from logging import Logger
 from typing import Callable, Any
 
-import autoit
 import pyautogui
 import pygetwindow as gw
 from pygetwindow import Win32Window
@@ -41,7 +40,7 @@ class DesktopTask(AutomatedTask, ABC):
 
             for window_title in window_titles:
                 if window_title.__contains__(title):
-                    autoit.win_activate(window_title)
+                    gw.getWindowsWithTitle(window_title)[0].activate()
                     return window_title
 
             current_attempt += 1
@@ -74,7 +73,7 @@ class DesktopTask(AutomatedTask, ABC):
             self.sleep()
             counter += 1
 
-        autoit.win_activate(window_title)
+        gw.getWindowsWithTitle(window_title)[0].activate()
         self._window = self._app.window(title=self._window_title_stack.peek())
         return self._window
 

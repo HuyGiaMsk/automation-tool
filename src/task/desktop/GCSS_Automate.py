@@ -1,7 +1,6 @@
 from logging import Logger
 from typing import Callable, Iterator
 
-import autoit
 import pyautogui
 import pygetwindow as gw
 from pywinauto import Application, WindowSpecification
@@ -121,7 +120,7 @@ class GCSS_Automate(DesktopTask):
 
         GCSS_Shipment_MSL_Active_Title: str = self._wait_for_window(shipment)
         self._window_title_stack.append(GCSS_Shipment_MSL_Active_Title)
-        autoit.win_activate(GCSS_Shipment_MSL_Active_Title)
+        gw.getWindowsWithTitle(GCSS_Shipment_MSL_Active_Title)[0].activate()
 
         self._app: Application = Application().connect(title=self._window_title_stack.peek())
         self._window: WindowSpecification = self._app.window(title=self._window_title_stack.peek())

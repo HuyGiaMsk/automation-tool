@@ -9,18 +9,11 @@ our_hidden_imports = [  'selenium.webdriver.chrome',
                         'requests',
                         'wget',
                         'xlwings',
-                        'autoit',
                         'pdfplumber',
                         'PyPDF2',
-                        "autoit.init",
-                        "autoit.autoit",
-                        "autoit.control",
-                        "autoit.process",
-                        "autoit.win",
                         "pyautogui"     ]
 
 if platform_name == 'Windows':
-    our_datas.append(("venv\\Lib\\site-packages\\autoit\\lib\\AutoItX3_x64.dll", "autoit\\lib"))
     our_hidden_imports.append("pywinauto")
 
 a = Analysis(
