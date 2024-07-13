@@ -22,11 +22,11 @@ ArchitecturesInstallIn64BitMode=x64compatible
 ChangesAssociations=yes
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
-InfoBeforeFile=.\README.md
+InfoBeforeFile=README.md
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputBaseFilename=automation_tool_installer
-OutputDir=.\dist\
+OutputDir=dist\
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -38,9 +38,10 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: ".\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion; BeforeInstall: DeleteAppDir
-Source: ".\dist\input\*"; DestDir: "{app}\input"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: ".\dist\script\*"; DestDir: "{app}\script"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion; BeforeInstall: DeleteAppDir
+Source: "dist\input\*"; DestDir: "{app}\input"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\script\*"; DestDir: "{app}\script"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\release_notes\*"; DestDir: "{app}\release_notes"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Registry]
 Root: HKA; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue
