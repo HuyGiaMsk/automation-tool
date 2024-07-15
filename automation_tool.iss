@@ -22,7 +22,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 ChangesAssociations=yes
 
-DisableProgramGroupPage=ye
+DisableProgramGroupPage=yes
 ; Remove the following line to run in administrative install mode (install for all users.)
 ; SetupIconFile=\resource\img\logo5.ico
 PrivilegesRequired=lowest
