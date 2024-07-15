@@ -20,11 +20,12 @@ DefaultDirName={pf}\{#MyAppName}
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 ChangesAssociations=yes
-DefaultGroupName={#MyAppName}
-AllowNoIcons=yes
-InfoBeforeFile=README.md
-PrivilegesRequired=lower
-PrivilegesRequiredOverridesAllowed=dialog
+
+DisableProgramGroupPage=yes
+; Remove the following line to run in administrative install mode (install for all users.)
+; SetupIconFile=C:\Users\HNL014\OneDrive\Desktop\AC\automation-tool\resource\img\logo5.ico
+PrivilegesRequired=lowest
+PrivilegesRequiredOverridesAllowed=commandline
 OutputBaseFilename=automation_tool_installer
 OutputDir=dist\
 Compression=lzma
@@ -52,8 +53,7 @@ Root: HKA; Subkey: "Software\Classes\{#MyAppAssocKey}\shell\open\command"; Value
 Root: HKA; Subkey: "Software\Classes\Applications\{#MyAppExeName}\SupportedTypes"; ValueType: string; ValueName: ".myp"; ValueData: ""
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
+Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
