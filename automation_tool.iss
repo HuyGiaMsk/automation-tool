@@ -1,6 +1,6 @@
 #define MyAppName "automation_tool"
 #define MyAppVersion "0.0.1"
-#define MyAppPublisher "Huy N Hung, Inc."
+#define MyAppPublisher "MEK AC Team - Maersk, Co.op."
 #define MyAppURL "https://github.com/HuyGiaMsk/automation_tool"
 #define MyAppExeName "automation_tool.exe"
 #define MyAppAssocName MyAppName + " File"
@@ -16,14 +16,15 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={pf}\{#MyAppName}
+UsePreviousAppDir=no
+DefaultDirName={sd}\{#MyAppName}
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 ChangesAssociations=yes
 
-DisableProgramGroupPage=yes
+DisableProgramGroupPage=ye
 ; Remove the following line to run in administrative install mode (install for all users.)
-; SetupIconFile=C:\Users\HNL014\OneDrive\Desktop\AC\automation-tool\resource\img\logo5.ico
+; SetupIconFile=\resource\img\logo5.ico
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=commandline
 OutputBaseFilename=automation_tool_installer
@@ -41,9 +42,6 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion;
 Source: "dist\input\*"; DestDir: "{app}\input"; Flags: ignoreversion;
-Source: "dist\output\*"; DestDir: "{app}\output"; Flags: ignoreversion;
-Source: "dist\script\*"; DestDir: "{app}\script"; Flags: ignoreversion;
-Source: "dist\release_notes\*"; DestDir: "{app}\release_notes"; Flags: ignoreversion;
 
 [Registry]
 Root: HKA; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue

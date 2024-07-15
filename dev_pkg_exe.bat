@@ -17,9 +17,6 @@ pyinstaller automation_tool.spec
 
 IF EXIST dist (
     xcopy input dist\input /E /H /C /I
-    xcopy output dist\output /E /H /C /I
-    xcopy script dist\script /E /H /C /I
-    xcopy script dist\release_notes /E /H /C /I
 )
 
 echo Checking Inno Setup path...
@@ -40,5 +37,5 @@ IF ERRORLEVEL 1 (
 )
 echo Inno Setup completed.
 
-call venv\Scripts\activate.bat
+call venv\Scripts\deactivate.bat
 pause

@@ -27,10 +27,11 @@ class RuntimeMutableFilePathResolver(PathResolver):
             return installation_dir
         else:
             # This is for running in an IDE or standard Python interpreter
-            root_dir: str = os.path.abspath(__file__)
-            while not (root_dir.endswith('automation-tool') or root_dir.endswith('automation_tool')):
-                root_dir = os.path.dirname(root_dir)
-                root_dir = root_dir.lower()
+            src_dir: str = os.path.abspath(__file__)
+            while not src_dir.endswith('src'):
+                src_dir = os.path.dirname(src_dir)
+
+            root_dir = os.path.dirname(src_dir)
             return root_dir
 
     @only_accept_callers_from(PathResolvingService)
