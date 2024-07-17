@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 import platform
+from PyInstaller.utils.hooks import collect_submodules
 platform_name = platform.system()
 
 our_datas = [('resource', 'resource'), ('src', 'src')]
@@ -12,11 +13,11 @@ our_hidden_imports = [  'selenium.webdriver.chrome',
                         'pdfplumber',
                         'PyPDF2',
                         "pyautogui",
-                        'comtypes',
-                        'comtypes.client']
+                        'pywinauto'
+                        ]
 
 if platform_name == 'Windows':
-    our_hidden_imports.append("pywinauto")
+    our_hidden_imports.extend(collect_submodules('comtypes'))
 
 a = Analysis(
     ['src/gui/GUIApp.py'],
