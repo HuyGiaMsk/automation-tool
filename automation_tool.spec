@@ -12,7 +12,8 @@ our_hidden_imports = [  'selenium.webdriver.chrome',
                         'pdfplumber',
                         'PyPDF2',
                         "pyautogui",
-                        'comtypes',]
+                        'comtypes',
+                        'comtypes.client']
 
 if platform_name == 'Windows':
     our_hidden_imports.append("pywinauto")
