@@ -59,6 +59,7 @@ class Lululemon_PDFRead(AutomatedTask):
                     else:
                         other_files.append(current_pdf)
 
+            # Loop and find the file FCR first
             for current_pdf in fcr_files:
                 pdf: PDF = pdfplumber.open(os.path.join(root, current_pdf))
                 logger.info("File name : {} PDF counter  = {}".format(current_pdf, pdf_counter))
@@ -77,7 +78,7 @@ class Lululemon_PDFRead(AutomatedTask):
                 excel_reader.save(workbook=workbook)
                 pdf_counter += 1
 
-            # Xử lý các file còn lại trong thư mục
+            # Loop and reading the others
             for current_pdf in other_files:
                 if current_pdf.lower().endswith(".pdf"):
                     pdf: PDF = pdfplumber.open(os.path.join(root, current_pdf))

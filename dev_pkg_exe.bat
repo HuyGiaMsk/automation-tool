@@ -1,4 +1,7 @@
 @echo off
+IF EXIST build (
+    rmdir /s /q build
+)
 
 IF EXIST dist (
     rmdir /s /q dist
