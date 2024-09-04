@@ -19,8 +19,12 @@ class PDFRead(AutomatedTask):
         mandatory_keys: list[str] = ['excel.path', 'excel.sheet', 'folder_docs.folder']
         return mandatory_keys
 
-    def automate(self):
+    def clear_worksheet(self, worksheet):
+        excel_reader: ExcelReaderProvider = XlwingProvider()
+        used_range = worksheet.used_range
+        used_range.clear_contents()
 
+    def automate(self):
         logger: Logger = get_current_logger()
 
         excel_reader: ExcelReaderProvider = XlwingProvider()
@@ -31,6 +35,7 @@ class PDFRead(AutomatedTask):
 
         sheet_name: str = self._settings['excel.sheet']
         worksheet = excel_reader.get_worksheet(workbook, sheet_name)
+        self.clear_worksheet(worksheet)
 
         path_to_docs = self._settings['folder_docs.folder']
         pdf_counter: int = 1
@@ -48,6 +53,7 @@ class PDFRead(AutomatedTask):
                 if self.terminated is True:
                     return
 
+            files = []
             for current_pdf in files:
                 if not current_pdf.lower().endswith(".pdf"):
                     continue

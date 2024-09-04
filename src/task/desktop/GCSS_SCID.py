@@ -15,7 +15,7 @@ from src.excel_reader_provider.XlwingProvider import XlwingProvider
 from src.task.DesktopTask import DesktopTask
 
 
-class GCSS_Automate(DesktopTask):
+class GCSS_SCID(DesktopTask):
 
     def __init__(self, settings: dict[str, str], callback_before_run_task: Callable[[], None]):
         super().__init__(settings, callback_before_run_task)
