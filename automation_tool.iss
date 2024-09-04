@@ -1,5 +1,5 @@
 #define MyAppName "automation_tool"
-#define MyAppVersion "0.0.1"
+#define MyAppVersion "0.0.8"
 #define MyAppPublisher "MEK AC Team - Maersk, Co.op."
 #define MyAppURL "https://github.com/HuyGiaMsk/automation_tool"
 #define MyAppExeName "automation_tool.exe"

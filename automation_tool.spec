@@ -17,7 +17,7 @@ our_hidden_imports = [  'selenium.webdriver.chrome',
                         ]
 
 if platform_name == 'Windows':
-    our_hidden_imports.extend(['comtypes.gen', 'pywintypes'])
+    our_hidden_imports.extend(collect_submodules('comtypes'))
 
 a = Analysis(
     ['src/gui/GUIApp.py'],
