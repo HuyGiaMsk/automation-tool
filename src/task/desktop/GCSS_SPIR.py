@@ -41,7 +41,6 @@ class GCSS_SPIR(DesktopTask):
                                                                      self._settings['excel.shipment'])
 
         self._wait_for_window('Pending Tray')
-        self._window_title_stack.append('Pending Tray')
 
         self.current_element_count = 0
         self.total_element_size = len(shipments)
@@ -69,34 +68,17 @@ class GCSS_SPIR(DesktopTask):
                 pyautogui.hotkey('enter')
 
                 try:
-                    popup_window: str = self._wait_for_window('Invalid Booking Number')
-                    self._window_title_stack.append(popup_window)
-                    gw.getWindowsWithTitle(popup_window)[0].activate()
-
-                    self._app: Application = Application().connect(title=self._window_title_stack.peek())
-                    self._window: WindowSpecification = self._app.window(title=self._window_title_stack.peek())
-
-                    if popup_window:
-                        pyautogui.hotkey('enter')
-                        pyautogui.hotkey('shift', 'tab')
-                        pyautogui.hotkey('shift', 'tab')
-                        pyautogui.hotkey('down')
-                        pyautogui.hotkey('alt', 'k')
-
-                        self.sleep()
-                        self.process_on_each_shipment_adhoc(shipment)
-                        self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
-                                                            3, 'Done')
-                        self.excel_provider.save(workbook)
-
-                        logger.info("Done with shipment " + shipment)
-                        continue
-
+                    self._wait_for_window(shipment)
                 except:
-                    logger.debug('No popup found to failed handle it')
+                    self.handle_invalid_window(shipment, workbook)
+                    self.current_status_excel_row_index += 1
+                    self.current_element_count += 1
+                    continue
 
-                self.sleep()
                 self.process_on_each_shipment(shipment)
+
+                self._close_windows_util_reach_first_gscc()
+
                 self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
                                                     3, 'Done')
                 self.excel_provider.save(workbook)
@@ -104,11 +86,12 @@ class GCSS_SPIR(DesktopTask):
                 logger.info("Done with shipment " + shipment)
 
             except Exception:
-
                 self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
-                                                    3, 'To refresh GCSS (F5) message prompted')
+                                                    3,
+                                                    'Cannot handle shipment {}, please check manual'.format(shipment))
                 self.excel_provider.save(workbook)
-                logger.info(f'Not handle shipment {shipment}. Moving to next shipment')
+                logger.info(f'Cannot handle shipment {shipment}. Moving to next shipment')
+
                 self._close_windows_util_reach_first_gscc()
                 self.current_status_excel_row_index += 1
                 self.current_element_count += 1
@@ -123,9 +106,9 @@ class GCSS_SPIR(DesktopTask):
     def process_on_each_shipment(self, shipment):
         logger: Logger = get_current_logger()
 
-        GCSS_Shipment_MSL_Active_Title: str = self._wait_for_window(shipment)
-        self._window_title_stack.append(GCSS_Shipment_MSL_Active_Title)
-        gw.getWindowsWithTitle(GCSS_Shipment_MSL_Active_Title)[0].activate()
+        window_shipment: str = self._wait_for_window(shipment)
+        self._window_title_stack.append(window_shipment)
+        gw.getWindowsWithTitle(window_shipment)[0].activate()
 
         self._app: Application = Application().connect(title=self._window_title_stack.peek())
         self._window: WindowSpecification = self._app.window(title=self._window_title_stack.peek())
@@ -135,7 +118,7 @@ class GCSS_SPIR(DesktopTask):
         runner = 0
         array = [None for _ in range(8)]
         for item in list_views.items():
-
+            logger.info(runner)
             array[runner] = item.text()
 
             if runner != 7:
@@ -147,24 +130,17 @@ class GCSS_SPIR(DesktopTask):
                 self.into_activity_shipment()
                 self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
                                                     2, 'Load')
-                continue
-
-        # Input Excels
-        self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
-                                            3, 'Done')
-        self._close_windows_util_reach_first_gscc()
+                break
 
     def process_on_each_shipment_adhoc(self, shipment):
-        logger: Logger = get_current_logger()
-
-        GCSS_Shipment_MSL_Active_Title: str = self._wait_for_window(shipment)
-        self._window_title_stack.append(GCSS_Shipment_MSL_Active_Title)
-        gw.getWindowsWithTitle(GCSS_Shipment_MSL_Active_Title)[0].activate()
-
-        pyautogui.hotkey('ctrl', 'k')
+        window_adhoc: str = self._wait_for_window(shipment)
+        self._window_title_stack.append(window_adhoc)
+        gw.getWindowsWithTitle(window_adhoc)[0].activate()
 
         self._app: Application = Application().connect(title=self._window_title_stack.peek())
         self._window: WindowSpecification = self._app.window(title=self._window_title_stack.peek())
+
+        pyautogui.hotkey('ctrl', 'k')
 
         list_views = self._window.children(class_name="SysListView32")[0]
 
@@ -183,12 +159,7 @@ class GCSS_SPIR(DesktopTask):
                 self.into_activity_shipment()
                 self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
                                                     2, 'Load')
-                continue
-
-        # Input Excels
-        self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
-                                            3, 'Done')
-        self._close_windows_util_reach_first_gscc()
+                break
 
     def into_activity_shipment(self):
 
@@ -214,8 +185,6 @@ class GCSS_SPIR(DesktopTask):
                 continue
 
             runner = 0
-            # if array[0].text().startswith('OPS') and array[4].text() == 'Close':
-            #     continue
 
             if array[0].text().startswith('OPS (EQUIPMENT PICKUP)') and array[4].text() == 'Open':
                 list_of_activity_plan.append(array[0])
@@ -229,10 +198,10 @@ class GCSS_SPIR(DesktopTask):
             if array[0].text().startswith('OPS (ICD') and array[4].text() == 'Closed':
                 list_of_activity_plan_split.append(array[0])
 
-        if len(list_of_activity_plan) != 3 and len(list_of_activity_plan_split) != 3:
-            self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
-                                                3, 'Activity closed, Only update Invoice')
-            return
+        # if len(list_of_activity_plan) != 3 and len(list_of_activity_plan_split) != 3:
+        #     self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
+        #                                         3, 'Activity closed, Only update Invoice')
+        #     return
 
         for activity_plan in list_of_activity_plan:
             activity_plan.select()
@@ -246,9 +215,21 @@ class GCSS_SPIR(DesktopTask):
         pyautogui.hotkey('q')
         pyautogui.hotkey('p')
 
-        self._close_windows_util_reach_first_gscc()
+    def handle_invalid_window(self, shipment: str, workbook):
+        logger: Logger = get_current_logger()
 
-        if len(list_of_activity_plan) != 3 and len(list_of_activity_plan_split) != 3:
-            self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
-                                                3, 'Activity closed, recheck')
-            return
+        self._wait_for_window(title='Invalid Booking Number', max_attempt=5)
+
+        pyautogui.hotkey('enter')
+        pyautogui.hotkey('shift', 'tab')
+        pyautogui.hotkey('shift', 'tab')
+        pyautogui.hotkey('down')
+        pyautogui.hotkey('alt', 'k')
+
+        self.process_on_each_shipment_adhoc(shipment)
+        self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
+                                            3, 'Done')
+        self.excel_provider.save(workbook)
+
+        logger.info("Done with shipment " + shipment)
+        return

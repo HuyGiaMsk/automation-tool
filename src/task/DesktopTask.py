@@ -30,8 +30,7 @@ class DesktopTask(AutomatedTask, ABC):
 
         return False
 
-    def _wait_for_window(self, title):
-        max_attempt: int = 30
+    def _wait_for_window(self, title: str, max_attempt: int = 5):
         current_attempt: int = 0
 
         while current_attempt < max_attempt:
@@ -40,12 +39,13 @@ class DesktopTask(AutomatedTask, ABC):
 
             for window_title in window_titles:
                 if window_title.__contains__(title):
+                    self._window_title_stack.append(window_title)
                     gw.getWindowsWithTitle(window_title)[0].activate()
                     return window_title
 
             current_attempt += 1
             self.sleep()
-
+            # get_current_logger().info('Waiting for {}'.format(title))
         raise Exception('Can not find out the asked window {}'.format(title))
 
     def _hotkey_then_close_current_window(self, *args: Any) -> WindowSpecification:
@@ -87,7 +87,7 @@ class DesktopTask(AutomatedTask, ABC):
             window_title = window_title_stack[i]
 
             try:
-                app = Application().connect(title=window_title, timeout=10)
+                app = Application().connect(title=window_title, timeout=5)
 
                 window = app.window(title=window_title)
 
@@ -104,4 +104,4 @@ class DesktopTask(AutomatedTask, ABC):
             except Exception as e:
                 logger.debug(f"An error occurred: {e}")
 
-        self._wait_for_window(window_title_stack[0])
+        # self._wait_for_window(window_title_stack[0])
