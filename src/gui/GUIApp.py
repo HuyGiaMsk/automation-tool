@@ -1,7 +1,8 @@
 import os
 import tkinter as tk
 from logging import Logger
-from tkinter import Label, Frame, Text, HORIZONTAL, ttk, messagebox, Button
+from tkinter import Label, Frame, Text, HORIZONTAL, messagebox, Button
+from tkinter import ttk
 from tkinter.ttk import Combobox, Progressbar, Style
 from typing import Tuple
 
@@ -40,13 +41,13 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
         # basic configurations for the Tk instance
         self.title("Automation Tool")
         self.geometry('1080x980')
-        self.configure(bg="#FFFFFF")
+        # self.configure(bg="#FFFFFF")
 
         # register the life cycle callback when before ending/closing the tk instance/window
         self.protocol("WM_DELETE_WINDOW", self.handle_close_app)
 
         # initial rendering - layout portions
-        whole_app_frame = tk.Frame(self, bg="#FFFFFF")
+        whole_app_frame = tk.Frame(self)
         whole_app_frame.pack()
 
         resource_dir = PathResolvingService.get_instance().resolve('resource')
@@ -57,7 +58,7 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
         tasks_dropdown: Combobox = self.render_tasks_dropdown(parent_frame=whole_app_frame)
 
         self.main_content_frame = Frame(master=whole_app_frame, width=1080, height=600, bd=1, relief=tk.SOLID,
-                                        bg='#FFFFFF', borderwidth=0)
+                                        borderwidth=0)
         self.main_content_frame.pack(padx=10, pady=10)
 
         self.render_main_content_frame_for_first_task(tasks_dropdown=tasks_dropdown)
@@ -65,6 +66,11 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
         self.progress_bar, self.progress_bar_label = self.render_progress_bar(parent_frame=whole_app_frame)
 
         self.logging_textbox = self.render_textbox_logger(parent_frame=whole_app_frame)
+
+        theme_path = os.path.join(resource_dir, "theme", "forest-light.tcl")
+        self.tk.call('source', theme_path)
+        style = ttk.Style(self)
+        style.theme_use('forest-light')
 
     def get_ui_settings(self) -> dict[str, str]:
         return self.current_task_settings
@@ -110,13 +116,13 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
         self.destroy()
 
     def render_header(self, parent_frame: Frame, logo: tk.PhotoImage) -> Label:
-        logo_label: Label = Label(parent_frame, bg="#FFFFFF", width=980, image=logo, compound=tk.CENTER)
+        logo_label: Label = Label(parent_frame, width=980, image=logo, compound=tk.CENTER)
         logo_label.pack()
         return logo_label
 
     def render_tasks_dropdown(self, parent_frame: Frame) -> Combobox:
         tasks_dropdown: Combobox = Combobox(master=parent_frame, state="readonly", width=110, height=20,
-                                            background='#FB3D52', foreground='#FFFFFF')
+                                            background='#FB3D52')
         tasks_dropdown.pack(padx=10, pady=10)
         tasks_dropdown.bind("<<ComboboxSelected>>", self.handle_tasks_dropdown)
         tasks_dropdown['values'] = get_all_concrete_task_names()
@@ -164,7 +170,7 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
         self.current_task_settings = {}
         for each_setting in mandatory_settings:
             # Create a container frame for each pair combining a label and an input
-            setting_frame = Frame(self.main_content_frame, background='#FFFFFF')
+            setting_frame = Frame(self.main_content_frame)
             setting_frame.pack(anchor="w", pady=5)
 
             initial_value: str = input_setting_values.get(each_setting)
@@ -175,12 +181,12 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
         self.render_button_frame()
 
     def render_button_frame(self):
-        button_frame = tk.Frame(master=self.main_content_frame, bg='#FFFFFF')
+        button_frame = tk.Frame(master=self.main_content_frame)
         button_frame.pack(expand=True, fill="both")
         # Create a left and right frame with a flexible column configuration
-        left_frame = tk.Frame(master=button_frame, bg='#FFFFFF')
+        left_frame = tk.Frame(master=button_frame)
         left_frame.pack(side="left", expand=True, fill="both")
-        right_frame = tk.Frame(master=button_frame, bg='#FFFFFF')
+        right_frame = tk.Frame(master=button_frame)
         right_frame.pack(side="right", expand=True, fill="both")
         perform_button = tk.Button(button_frame,
                                    text='Perform',
@@ -277,7 +283,7 @@ class GUIApp(tk.Tk, EventHandler, UITaskPerformingStates):
 
     def render_textbox_logger(self, parent_frame: Frame):
         textbox: Text = tk.Text(master=parent_frame, wrap="word", state=tk.DISABLED, width=100, height=15,
-                                background='#878787', font=('Maersk Text', 10), foreground='#FFFFFF')
+                                font=('Maersk Text', 10))
         textbox.pack()
         setup_textbox_logger(textbox)
         return textbox

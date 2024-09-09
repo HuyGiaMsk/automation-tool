@@ -78,9 +78,9 @@ class GCSS_SPIR(DesktopTask):
             except Exception:
 
                 self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
-                                                    3, 'An exception error, pls recheck in manual')
+                                                    3, 'To refresh GCSS (F5) message prompted')
                 self.excel_provider.save(workbook)
-                logger.info(f'Cannot handle shipment {shipment}. Moving to next shipment')
+                logger.info(f'Not handle shipment {shipment}. Moving to next shipment')
                 self._close_windows_util_reach_first_gscc()
                 self.current_status_excel_row_index += 1
                 self.current_element_count += 1
@@ -115,7 +115,7 @@ class GCSS_SPIR(DesktopTask):
                 continue
 
             runner = 0
-            if array[3] == 'LOAD':
+            if 'LOAD' in array[3]:
                 self.into_activity_shipment()
                 self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
                                                     2, 'Load')
@@ -139,6 +139,7 @@ class GCSS_SPIR(DesktopTask):
         runner = 0
         array = [None for _ in range(6)]
         list_of_activity_plan: list[_listview_item] = []
+        list_of_activity_plan_split: list[_listview_item] = []
         listview_activity: ListViewWrapper = self._window.children(class_name="SysListView32")[0]
 
         for item in listview_activity.items():
@@ -149,8 +150,8 @@ class GCSS_SPIR(DesktopTask):
                 continue
 
             runner = 0
-            if array[0].text().startswith('OPS') and array[4].text() == 'Close':
-                continue
+            # if array[0].text().startswith('OPS') and array[4].text() == 'Close':
+            #     continue
 
             if array[0].text().startswith('OPS (EQUIPMENT PICKUP)') and array[4].text() == 'Open':
                 list_of_activity_plan.append(array[0])
@@ -158,19 +159,22 @@ class GCSS_SPIR(DesktopTask):
             if array[0].text().startswith('OPS (ICD') and array[4].text() == 'Open':
                 list_of_activity_plan.append(array[0])
 
-            if len(list_of_activity_plan) == 3:
-                print(list_of_activity_plan)
-                break
+            if array[0].text().startswith('OPS (EQUIPMENT PICKUP)') and array[4].text() == 'Closed':
+                list_of_activity_plan_split.append(array[0])
 
-        if len(list_of_activity_plan) != 3:
+            if array[0].text().startswith('OPS (ICD') and array[4].text() == 'Closed':
+                list_of_activity_plan_split.append(array[0])
+
+        if len(list_of_activity_plan) != 3 and len(list_of_activity_plan_split) != 3:
             self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
-                                                3, 'Activity closed, recheck')
+                                                3, 'Activity closed, Only update Invoice')
             return
 
         for activity_plan in list_of_activity_plan:
             activity_plan.select()
             pyautogui.hotkey('alt', 'l')
             activity_plan.deselect()
+            self.sleep()
 
         pyautogui.hotkey('alt', 'i')
         self.sleep()
@@ -181,4 +185,9 @@ class GCSS_SPIR(DesktopTask):
         pyautogui.hotkey('p')
         self.sleep()
 
-        # self._close_windows_util_reach_first_gscc()
+        self._close_windows_util_reach_first_gscc()
+
+        if len(list_of_activity_plan) != 3 and len(list_of_activity_plan) != 0:
+            self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
+                                                3, 'Activity closed, recheck')
+            return
