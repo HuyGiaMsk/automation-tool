@@ -67,6 +67,34 @@ class GCSS_SPIR(DesktopTask):
                 pyautogui.typewrite(shipment)
                 pyautogui.hotkey('tab')
                 pyautogui.hotkey('enter')
+
+                try:
+                    popup_window: str = self._wait_for_window('Invalid Booking Number')
+                    self._window_title_stack.append(popup_window)
+                    gw.getWindowsWithTitle(popup_window)[0].activate()
+
+                    self._app: Application = Application().connect(title=self._window_title_stack.peek())
+                    self._window: WindowSpecification = self._app.window(title=self._window_title_stack.peek())
+
+                    if popup_window:
+                        pyautogui.hotkey('enter')
+                        pyautogui.hotkey('shift', 'tab')
+                        pyautogui.hotkey('shift', 'tab')
+                        pyautogui.hotkey('down')
+                        pyautogui.hotkey('alt', 'k')
+
+                        self.sleep()
+                        self.process_on_each_shipment_adhoc(shipment)
+                        self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
+                                                            3, 'Done')
+                        self.excel_provider.save(workbook)
+
+                        logger.info("Done with shipment " + shipment)
+                        continue
+
+                except:
+                    logger.debug('No popup found to failed handle it')
+
                 self.sleep()
                 self.process_on_each_shipment(shipment)
                 self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
@@ -103,6 +131,42 @@ class GCSS_SPIR(DesktopTask):
         self._window: WindowSpecification = self._app.window(title=self._window_title_stack.peek())
 
         list_views = self._window.children(class_name="SysListView32")[1]
+
+        runner = 0
+        array = [None for _ in range(8)]
+        for item in list_views.items():
+
+            array[runner] = item.text()
+
+            if runner != 7:
+                runner = runner + 1
+                continue
+
+            runner = 0
+            if 'LOAD' in array[3]:
+                self.into_activity_shipment()
+                self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
+                                                    2, 'Load')
+                continue
+
+        # Input Excels
+        self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
+                                            3, 'Done')
+        self._close_windows_util_reach_first_gscc()
+
+    def process_on_each_shipment_adhoc(self, shipment):
+        logger: Logger = get_current_logger()
+
+        GCSS_Shipment_MSL_Active_Title: str = self._wait_for_window(shipment)
+        self._window_title_stack.append(GCSS_Shipment_MSL_Active_Title)
+        gw.getWindowsWithTitle(GCSS_Shipment_MSL_Active_Title)[0].activate()
+
+        pyautogui.hotkey('ctrl', 'k')
+
+        self._app: Application = Application().connect(title=self._window_title_stack.peek())
+        self._window: WindowSpecification = self._app.window(title=self._window_title_stack.peek())
+
+        list_views = self._window.children(class_name="SysListView32")[0]
 
         runner = 0
         array = [None for _ in range(8)]
@@ -180,14 +244,11 @@ class GCSS_SPIR(DesktopTask):
         self.sleep()
 
         pyautogui.hotkey('q')
-        self.sleep()
-
         pyautogui.hotkey('p')
-        self.sleep()
 
         self._close_windows_util_reach_first_gscc()
 
-        if len(list_of_activity_plan) != 3 and len(list_of_activity_plan) != 0:
+        if len(list_of_activity_plan) != 3 and len(list_of_activity_plan_split) != 3:
             self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
                                                 3, 'Activity closed, recheck')
             return
