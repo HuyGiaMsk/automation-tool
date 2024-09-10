@@ -41,6 +41,7 @@ class GCSS_SPIR(DesktopTask):
                                                                      self._settings['excel.shipment'])
 
         self._wait_for_window('Pending Tray')
+        self._window_title_stack.append('Pending Tray')
 
         self.current_element_count = 0
         self.total_element_size = len(shipments)
@@ -62,11 +63,13 @@ class GCSS_SPIR(DesktopTask):
             logger.info("Start process shipment " + shipment)
 
             try:
+
                 pyautogui.hotkey('ctrl', 'o')
                 pyautogui.typewrite(shipment)
                 pyautogui.hotkey('tab')
                 pyautogui.hotkey('enter')
 
+                # handle for adhoc shipment
                 try:
                     self._wait_for_window(shipment)
                 except:
@@ -76,8 +79,6 @@ class GCSS_SPIR(DesktopTask):
                     continue
 
                 self.process_on_each_shipment(shipment)
-
-                self._close_windows_util_reach_first_gscc()
 
                 self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
                                                     3, 'Done')
@@ -106,9 +107,9 @@ class GCSS_SPIR(DesktopTask):
     def process_on_each_shipment(self, shipment):
         logger: Logger = get_current_logger()
 
-        window_shipment: str = self._wait_for_window(shipment)
-        self._window_title_stack.append(window_shipment)
-        gw.getWindowsWithTitle(window_shipment)[0].activate()
+        window_normal_shipment: str = self._wait_for_window(shipment)
+        self._window_title_stack.append(window_normal_shipment)
+        gw.getWindowsWithTitle(window_normal_shipment)[0].activate()
 
         self._app: Application = Application().connect(title=self._window_title_stack.peek())
         self._window: WindowSpecification = self._app.window(title=self._window_title_stack.peek())
@@ -118,7 +119,7 @@ class GCSS_SPIR(DesktopTask):
         runner = 0
         array = [None for _ in range(8)]
         for item in list_views.items():
-            logger.info(runner)
+
             array[runner] = item.text()
 
             if runner != 7:
@@ -130,9 +131,17 @@ class GCSS_SPIR(DesktopTask):
                 self.into_activity_shipment()
                 self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
                                                     2, 'Load')
+
+                pyautogui.hotkey('alt')
+                pyautogui.hotkey('v')
+                pyautogui.hotkey('left')
+                pyautogui.hotkey('left')
+                pyautogui.hotkey('c')
+                self.sleep()
                 break
 
     def process_on_each_shipment_adhoc(self, shipment):
+
         window_adhoc: str = self._wait_for_window(shipment)
         self._window_title_stack.append(window_adhoc)
         gw.getWindowsWithTitle(window_adhoc)[0].activate()
@@ -159,6 +168,13 @@ class GCSS_SPIR(DesktopTask):
                 self.into_activity_shipment()
                 self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
                                                     2, 'Load')
+
+                pyautogui.hotkey('alt')
+                pyautogui.hotkey('v')
+                pyautogui.hotkey('left')
+                pyautogui.hotkey('left')
+                pyautogui.hotkey('c')
+                self.sleep()
                 break
 
     def into_activity_shipment(self):
@@ -198,11 +214,6 @@ class GCSS_SPIR(DesktopTask):
             if array[0].text().startswith('OPS (ICD') and array[4].text() == 'Closed':
                 list_of_activity_plan_split.append(array[0])
 
-        # if len(list_of_activity_plan) != 3 and len(list_of_activity_plan_split) != 3:
-        #     self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
-        #                                         3, 'Activity closed, Only update Invoice')
-        #     return
-
         for activity_plan in list_of_activity_plan:
             activity_plan.select()
             pyautogui.hotkey('alt', 'l')
@@ -218,7 +229,7 @@ class GCSS_SPIR(DesktopTask):
     def handle_invalid_window(self, shipment: str, workbook):
         logger: Logger = get_current_logger()
 
-        self._wait_for_window(title='Invalid Booking Number', max_attempt=5)
+        self._wait_for_window('Invalid Booking Number')
 
         pyautogui.hotkey('enter')
         pyautogui.hotkey('shift', 'tab')

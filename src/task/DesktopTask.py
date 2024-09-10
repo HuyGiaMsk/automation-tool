@@ -45,7 +45,6 @@ class DesktopTask(AutomatedTask, ABC):
 
             current_attempt += 1
             self.sleep()
-            # get_current_logger().info('Waiting for {}'.format(title))
         raise Exception('Can not find out the asked window {}'.format(title))
 
     def _hotkey_then_close_current_window(self, *args: Any) -> WindowSpecification:
