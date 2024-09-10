@@ -3,7 +3,7 @@ import platform
 from PyInstaller.utils.hooks import collect_submodules
 platform_name = platform.system()
 
-our_datas = [('resource', 'resource'), ('src', 'src')]
+our_datas = [('resource', 'resource'), ('src', 'src'), ('LICENSE', 'LICENSE')]
 our_hidden_imports = [  'selenium.webdriver.chrome',
                         'selenium.webdriver.support.expected_conditions',
                         'selenium.webdriver.support.wait',
