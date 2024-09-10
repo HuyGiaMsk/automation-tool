@@ -132,6 +132,7 @@ class GCSS_SPIR(DesktopTask):
                 self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
                                                     2, 'Load')
 
+                pyautogui.hotkey('alt', 'k')
                 pyautogui.hotkey('alt')
                 pyautogui.hotkey('v')
                 pyautogui.hotkey('left')
@@ -169,6 +170,7 @@ class GCSS_SPIR(DesktopTask):
                 self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
                                                     2, 'Load')
 
+                pyautogui.hotkey('alt', 'k')
                 pyautogui.hotkey('alt')
                 pyautogui.hotkey('v')
                 pyautogui.hotkey('left')
