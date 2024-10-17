@@ -1,3 +1,4 @@
+import time
 from logging import Logger
 from typing import Callable
 
@@ -134,6 +135,7 @@ class GCSS_SPIR(DesktopTask):
         self._window: WindowSpecification = self._app.window(title=self._window_title_stack.peek())
 
         pyautogui.hotkey('ctrl', 'k')
+        time.sleep(2)
 
         list_views = self._window.children(class_name="SysListView32")[1]
 
@@ -180,6 +182,7 @@ class GCSS_SPIR(DesktopTask):
         self._window: WindowSpecification = self._app.window(title=self._window_title_stack.peek())
 
         pyautogui.hotkey('ctrl', 'k')
+        self.sleep()
 
         list_views = self._window.children(class_name="SysListView32")[0]
 
@@ -198,7 +201,6 @@ class GCSS_SPIR(DesktopTask):
                 self.into_activity_shipment()
                 self.excel_provider.change_value_at(self.current_worksheet, self.current_status_excel_row_index,
                                                     2, 'Load')
-
                 pyautogui.hotkey('alt', 'k')
                 pyautogui.hotkey('alt')
                 pyautogui.hotkey('v')
