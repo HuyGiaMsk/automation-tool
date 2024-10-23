@@ -41,7 +41,6 @@ class PDFRead(AutomatedTask):
         pdf_counter: int = 1
 
         for root, dirs, files in os.walk(path_to_docs):
-
             if self.terminated is True:
                 return
 
@@ -53,12 +52,20 @@ class PDFRead(AutomatedTask):
                 if self.terminated is True:
                     return
 
-            files = []
+            # files = []
+
             for current_pdf in files:
                 if not current_pdf.lower().endswith(".pdf"):
                     continue
 
-                pdf: PDF = pdfplumber.open(os.path.join(root, current_pdf))
+                current_pdf_path = os.path.join(root, current_pdf)
+
+                try:
+                    pdf: PDF = pdfplumber.open(current_pdf_path)
+                except Exception as e:
+                    logger.error(f"Failed to open {current_pdf_path}: {e}")
+                    continue  # Skip this PDF if there's an error
+
                 logger.info("File name : {} PDF counter  = {}".format(current_pdf, pdf_counter))
                 excel_reader.change_value_at(worksheet=worksheet, row=1, column=pdf_counter, value=current_pdf)
 
